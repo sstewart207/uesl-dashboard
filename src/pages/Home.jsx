@@ -15,6 +15,7 @@ import {
 } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
+import { cleanHtml } from '../utils/sanitize'
 
 const HUB_META = {
   gaming: { label: 'Gaming', icon: <SportsEsports sx={{ fontSize: 16 }} />, path: '/gaming' },
@@ -241,7 +242,7 @@ function BoardHighlight({ bulletins }) {
             <Typography
               variant="caption" color="text.secondary"
               sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
-              dangerouslySetInnerHTML={{ __html: top.body }}
+              dangerouslySetInnerHTML={{ __html: cleanHtml(top.body) }}
             />
           </Box>
         )}

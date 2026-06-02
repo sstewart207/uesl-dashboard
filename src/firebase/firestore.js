@@ -3,7 +3,8 @@ import {
   query, where, orderBy, limit, serverTimestamp, increment,
   onSnapshot, setDoc, arrayUnion, arrayRemove, runTransaction,
 } from 'firebase/firestore'
-import { db } from './firebase'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { db, storage } from './firebase'
 
 /* ---------------- POSTS ---------------- */
 
@@ -82,6 +83,11 @@ export async function addComment(postId, data) {
   await updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) })
 }
 
+export async function deleteComment(postId, commentId) {
+  await deleteDoc(doc(db, 'posts', postId, 'comments', commentId))
+  await updateDoc(doc(db, 'posts', postId), { commentCount: increment(-1) })
+}
+
 /* ---------------- EVENTS ---------------- */
 
 export function subscribeEvents(cb) {
@@ -155,6 +161,15 @@ export async function getUser(uid) {
 
 export async function updateUserProfile(uid, data) {
   return updateDoc(doc(db, 'users', uid), data)
+}
+
+// Upload an avatar image to Storage and save its URL on the user doc.
+export async function uploadAvatar(uid, file) {
+  const storageRef = ref(storage, `avatars/${uid}/${Date.now()}-${file.name}`)
+  await uploadBytes(storageRef, file)
+  const url = await getDownloadURL(storageRef)
+  await updateDoc(doc(db, 'users', uid), { avatarUrl: url })
+  return url
 }
 
 /* ---------------- APPROVALS (admin/coach) ---------------- */

@@ -4,11 +4,18 @@ import {
   Box, Stack, Typography, Avatar, Chip, Button, Card, CardContent,
   Divider, Tab, Tabs, Grid,
 } from '@mui/material'
-import { Edit, SportsEsports, Code, Palette, EmojiEvents } from '@mui/icons-material'
+import { Edit, SportsEsports } from '@mui/icons-material'
 import PostCard from '../components/shared/PostCard'
 import { LoadingState } from '../components/shared/States'
+import EditProfileDialog, { SOCIALS } from '../components/shared/EditProfileDialog'
 import { getUser, getPostsByAuthor } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
+
+// Normalize a handle/url into a clickable link
+function toUrl(v) {
+  if (!v) return null
+  return v.startsWith('http') ? v : `https://${v.replace(/^@/, '')}`
+}
 
 const ROLE_COLORS = {
   coach: { bg: 'rgba(255,214,10,0.18)', color: '#E6B800' },
@@ -20,20 +27,30 @@ const AVATAR_BG = ['#FFD60A', '#FF4655', '#22D3EE', '#F472B6', '#22C55E']
 
 export default function Profile() {
   const { uid } = useParams()
-  const { userProfile } = useAuth()
+  const { userProfile, fetchProfile } = useAuth()
   const [tab, setTab] = useState(0)
   const [member, setMember] = useState(null)
   const [memberPosts, setMemberPosts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [editOpen, setEditOpen] = useState(false)
 
-  useEffect(() => {
-    setLoading(true)
-    Promise.all([getUser(uid), getPostsByAuthor(uid)]).then(([u, posts]) => {
+  function load() {
+    return Promise.all([getUser(uid), getPostsByAuthor(uid)]).then(([u, posts]) => {
       setMember(u)
       setMemberPosts(posts)
       setLoading(false)
     })
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    load()
   }, [uid])
+
+  async function handleSaved() {
+    await load()
+    if (uid === userProfile?.uid) await fetchProfile(uid) // refresh navbar/sidebar avatar
+  }
 
   if (loading) return <LoadingState label="Loading profile…" />
 
@@ -101,10 +118,30 @@ export default function Profile() {
                   ))}
                 </Stack>
               )}
+
+              {/* Social links */}
+              {SOCIALS.some(s => resolved[s.key]) && (
+                <Stack direction="row" flexWrap="wrap" gap={1} mt={1.5} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+                  {SOCIALS.filter(s => resolved[s.key]).map(s => (
+                    <Chip
+                      key={s.key}
+                      icon={<Box sx={{ display: 'flex', '& svg': { fontSize: 16 } }}>{s.icon}</Box>}
+                      label={s.label}
+                      size="small"
+                      component="a"
+                      href={toUrl(resolved[s.key])}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      clickable
+                      sx={{ fontSize: 11, bgcolor: `${s.color}22`, color: s.color, '& .MuiChip-icon': { color: s.color } }}
+                    />
+                  ))}
+                </Stack>
+              )}
             </Box>
 
             {isOwnProfile && (
-              <Button variant="outlined" size="small" startIcon={<Edit />} sx={{ flexShrink: 0 }}>
+              <Button variant="outlined" size="small" startIcon={<Edit />} sx={{ flexShrink: 0 }} onClick={() => setEditOpen(true)}>
                 Edit Profile
               </Button>
             )}
@@ -163,6 +200,15 @@ export default function Profile() {
             <Chip label={resolved.role} size="small" sx={{ bgcolor: role.bg, color: role.color }} />
           </CardContent>
         </Card>
+      )}
+
+      {isOwnProfile && editOpen && (
+        <EditProfileDialog
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          profile={resolved}
+          onSaved={handleSaved}
+        />
       )}
     </Box>
   )

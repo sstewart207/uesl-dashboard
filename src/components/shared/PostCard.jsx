@@ -10,6 +10,7 @@ import {
 } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import { HUB_COLORS } from '../../theme/theme'
+import { cleanHtml } from '../../utils/sanitize'
 
 const HUB_META = {
   gaming: { label: 'Gaming', color: HUB_COLORS.gaming, icon: <SportsEsports fontSize="inherit" /> },
@@ -107,7 +108,7 @@ export default function PostCard({ post, onLike, compact = false }) {
               mb: 1.5,
               '& *': { margin: 0 },
             }}
-            dangerouslySetInnerHTML={{ __html: post.body }}
+            dangerouslySetInnerHTML={{ __html: cleanHtml(post.body) }}
           />
         )}
 

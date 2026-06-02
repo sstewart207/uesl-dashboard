@@ -11,6 +11,7 @@ import 'react-quill-new/dist/quill.snow.css'
 import { LoadingState, EmptyState } from '../components/shared/States'
 import { subscribeBulletins, createBulletin } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
+import { cleanHtml } from '../utils/sanitize'
 
 function BulletinCard({ bulletin }) {
   const [expanded, setExpanded] = useState(false)
@@ -67,7 +68,7 @@ function BulletinCard({ bulletin }) {
                   background: theme => `linear-gradient(transparent, ${theme.palette.background.paper})`,
                 } : {},
               }}
-              dangerouslySetInnerHTML={{ __html: bulletin.body }}
+              dangerouslySetInnerHTML={{ __html: cleanHtml(bulletin.body) }}
             />
             <Button size="small" sx={{ mt: 0.5, fontSize: 12 }} onClick={() => setExpanded(e => !e)}>
               {expanded ? 'Show less' : 'Read more'}

@@ -40,8 +40,11 @@ function defaultUserDoc(email, displayName) {
     games: [],
     skills: [],
     bio: '',
+    discordUrl: '',
     twitchUrl: '',
     youtubeUrl: '',
+    instagramUrl: '',
+    xUrl: '',
     createdAt: serverTimestamp(),
     lastSeen: serverTimestamp(),
   }

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/sstew/clawd-on-desk/**)",
+      "Bash(node node_modules/electron/install.js)",
+      "Bash(echo \"EXIT=$?\")"
+    ]
+  }
+}

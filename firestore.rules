@@ -27,12 +27,18 @@ service cloud.firestore {
     // comment counts come from non-authors); delete restricted to author/coach.
     match /posts/{postId} {
       allow read, create: if isApproved();
-      allow update: if isApproved();
+      // Author/coach can edit anything; anyone else (approved) may ONLY change
+      // like/comment-count fields — not the title/body. Blocks content tampering.
+      allow update: if isApproved() && (
+        resource.data.authorUid == request.auth.uid || isCoach()
+        || request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['likedBy', 'likeCount', 'commentCount'])
+      );
       allow delete: if isApproved() && (resource.data.authorUid == request.auth.uid || isCoach());
       match /comments/{commentId} {
         allow read, create: if isApproved();
-        allow update: if isApproved();
-        allow delete: if isApproved() && (resource.data.authorUid == request.auth.uid || isCoach());
+        // Only the comment's author or a coach can edit/delete it.
+        allow update, delete: if isApproved() && (resource.data.authorUid == request.auth.uid || isCoach());
       }
     }
 

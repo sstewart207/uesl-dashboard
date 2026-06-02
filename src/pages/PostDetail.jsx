@@ -4,19 +4,34 @@ import {
   Box, Card, CardContent, Stack, Typography, Avatar, Chip,
   Divider, IconButton, Button, TextField, CircularProgress,
 } from '@mui/material'
-import { ThumbUpOutlined, ThumbUp, ArrowBack, Send } from '@mui/icons-material'
+import { ThumbUpOutlined, ThumbUp, ArrowBack, Send, DeleteOutline } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import { LoadingState } from '../components/shared/States'
 import {
   getPost, subscribeComments, addComment, togglePostLike, createNotification,
+  deletePost, deleteComment,
 } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
+import { cleanHtml } from '../utils/sanitize'
 
 export default function PostDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { currentUser, userProfile } = useAuth()
+  const { currentUser, userProfile, canApprove } = useAuth()
+  // Coaches/admins (canApprove) can moderate; authors can remove their own.
+  const isStaff = canApprove
+
+  async function handleDeletePost() {
+    if (!window.confirm('Delete this post? This cannot be undone.')) return
+    await deletePost(id)
+    navigate(-1)
+  }
+
+  async function handleDeleteComment(commentId) {
+    if (!window.confirm('Delete this comment?')) return
+    await deleteComment(id, commentId)
+  }
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
   const [comments, setComments] = useState([])
@@ -116,13 +131,18 @@ export default function PostDetail() {
               size="small"
               sx={{ bgcolor: `${color}22`, color, border: `1px solid ${color}44`, fontSize: 12 }}
             />
+            {(isStaff || post.authorUid === currentUser?.uid) && (
+              <IconButton size="small" onClick={handleDeletePost} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                <DeleteOutline fontSize="small" />
+              </IconButton>
+            )}
           </Stack>
 
           <Typography variant="h5" fontWeight={700} gutterBottom>{post.title}</Typography>
 
           <Box
             sx={{ mb: 2, '& p': { mb: 1 }, '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.5, borderRadius: 0.5 }, '& img': { maxWidth: '100%', borderRadius: 1 } }}
-            dangerouslySetInnerHTML={{ __html: post.body }}
+            dangerouslySetInnerHTML={{ __html: cleanHtml(post.body) }}
           />
 
           {post.tags?.length > 0 && (
@@ -175,6 +195,11 @@ export default function PostDetail() {
                       </Stack>
                       <Typography variant="body2" color="text.secondary" mt={0.5}>{c.body}</Typography>
                     </Box>
+                    {(isStaff || c.authorUid === currentUser?.uid) && (
+                      <IconButton size="small" onClick={() => handleDeleteComment(c.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                        <DeleteOutline sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
