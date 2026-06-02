@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Box, Stack, Typography, Card, CardContent, Button,
 } from '@mui/material'
-import { ThumbUp, ChatBubble, Campaign, EmojiEvents, CalendarMonth, DoneAll, NotificationsNone } from '@mui/icons-material'
+import { ThumbUp, ChatBubble, Campaign, EmojiEvents, CalendarMonth, DoneAll, NotificationsNone, AlternateEmail } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import { LoadingState, EmptyState } from '../components/shared/States'
 import { subscribeNotifications, markNotificationRead, markAllNotificationsRead } from '../firebase/firestore'
@@ -15,6 +15,7 @@ const ICON_MAP = {
   bulletin: { icon: <Campaign sx={{ fontSize: 16 }} />, color: '#10B981', bg: 'rgba(16,185,129,0.2)' },
   tournament: { icon: <EmojiEvents sx={{ fontSize: 16 }} />, color: '#F59E0B', bg: 'rgba(245,158,11,0.2)' },
   event: { icon: <CalendarMonth sx={{ fontSize: 16 }} />, color: '#EC4899', bg: 'rgba(236,72,153,0.2)' },
+  mention: { icon: <AlternateEmail sx={{ fontSize: 16 }} />, color: '#22D3EE', bg: 'rgba(34,211,238,0.2)' },
 }
 
 export default function Notifications() {
