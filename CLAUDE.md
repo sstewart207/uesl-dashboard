@@ -26,9 +26,12 @@ React 18 + Vite · MUI v6 · Firebase (Auth + Firestore + Storage) · react-quil
 ## Firestore collections
 `users` (displayName, email, role[pending|student|coach|admin], approved, avatarUrl, games[], skills[], bio, createdAt) · `posts` (+`comments` subcol) · `events` (rsvps map) · `bulletins` · `tournaments` · `notifications/{uid}/items`
 
+## Firebase deploy (rules + indexes)
+- Rules live in `firestore.rules`, indexes in `firestore.indexes.json`, wired via `firebase.json` + `.firebaserc` (project `uesl-dashboard`). User is logged in via `firebase-tools`.
+- Deploy from repo (no console pasting): `npx firebase-tools deploy --only firestore --project uesl-dashboard`. Claude can run this directly. Firebase MCP also configured in `.mcp.json`.
+- ✅ Events RSVP rule + the 2 composite indexes (posts by hub+createdAt, authorUid+createdAt) are DEPLOYED.
+
 ## Known gotchas / open items
-- **Composite indexes**: opening a single Hub page and a Profile's posts each need a Firestore composite index. First visit throws a console error with a clickable link → Create Index → ~1 min. One-time.
-- **Events RSVP rule**: events rule must allow `update: if isApproved()` (students RSVP by updating the event doc), with `create,delete: if isCoach()`. If RSVP is permission-denied, this is why.
 - Firebase password-reset emails land in spam (generic sender) — known, low priority.
 - Posting lives in the Hubs (Discord-room model); Home is a read-only dashboard.
 
