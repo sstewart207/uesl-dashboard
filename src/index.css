@@ -1,0 +1,60 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Quill editor overrides — theme-aware via [data-mode] on <html> */
+.ql-editor {
+  min-height: 120px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+.ql-toolbar.ql-snow {
+  border-radius: 6px 6px 0 0;
+}
+.ql-container.ql-snow {
+  border-radius: 0 0 6px 6px;
+}
+.ql-editor.ql-blank::before {
+  font-style: normal;
+}
+
+/* Dark mode (default) */
+[data-mode="dark"] .ql-toolbar.ql-snow,
+[data-mode="dark"] .ql-container.ql-snow {
+  border-color: rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.04);
+}
+[data-mode="dark"] .ql-editor { color: #F5F5F5; }
+[data-mode="dark"] .ql-snow .ql-stroke { stroke: #aaa; }
+[data-mode="dark"] .ql-snow .ql-fill { fill: #aaa; }
+[data-mode="dark"] .ql-snow .ql-picker { color: #aaa; }
+[data-mode="dark"] .ql-editor.ql-blank::before { color: rgba(255,255,255,0.3); }
+
+/* Light mode */
+[data-mode="light"] .ql-toolbar.ql-snow,
+[data-mode="light"] .ql-container.ql-snow {
+  border-color: rgba(0,0,0,0.15) !important;
+  background: #fafafa;
+}
+[data-mode="light"] .ql-editor { color: #0B0B0F; }
+[data-mode="light"] .ql-snow .ql-stroke { stroke: #555; }
+[data-mode="light"] .ql-snow .ql-fill { fill: #555; }
+[data-mode="light"] .ql-snow .ql-picker { color: #555; }
+[data-mode="light"] .ql-editor.ql-blank::before { color: rgba(0,0,0,0.35); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+[data-mode="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+[data-mode="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }

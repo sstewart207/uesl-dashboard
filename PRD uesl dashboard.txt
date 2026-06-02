@@ -1,0 +1,21 @@
+PRD
+
+
+
+
+Using react js and material design
+uesl dashboard - today at club 
+
+saas like dashboard website with calendar, add events, display events, homepage shows upcoming events, 
+a section for game tournaments and maybe a sign up page later
+
+3 main discussion pages, Gaming, Coding/Technology, Graphic Design, and that shows posts for those tags, think Google+ old layout.
+
+
+
+bulletin board or news so coaches can upload important information
+wwysig post editor flow with tag system
+
+
+
+a sort menu so a student can sort display on whether they are coding or gaming that day, and show posts based on that
