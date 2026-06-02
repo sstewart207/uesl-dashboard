@@ -8,3 +8,9 @@ dist
 
 # Firebase CLI cache
 .firebase/
+
+# Firebase secrets / service accounts (never commit)
+*firebase-adminsdk*.json
+serviceAccountKey*.json
+*-service-account*.json
+firebase-debug.log
