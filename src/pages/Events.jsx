@@ -11,18 +11,41 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import { LoadingState, EmptyState } from '../components/shared/States'
-import { subscribeEvents, createEvent, setEventRsvp } from '../firebase/firestore'
+import { subscribeEvents, createEvent, setEventRsvp, subscribeMembers, createNotification } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
+
+const RSVP_COLORS = { Going: '#22C55E', Maybe: '#F59E0B', 'Not Going': '#FF4655' }
 const HUB_ICONS = { gaming: <SportsEsports fontSize="small" />, coding: <Code fontSize="small" />, design: <Palette fontSize="small" /> }
 
-function EventCard({ event, uid }) {
+function EventCard({ event, uid, members = [], isCoach = false, currentUserName }) {
   const color = HUB_COLORS[event.hub] || '#7C3AED'
   const eventDate = event.date?.toDate?.() || new Date(event.date)
   const myRsvp = event.rsvps?.[uid] || null
 
+  // Roster from the rsvps map (ignore cleared/null entries)
+  const entries = Object.entries(event.rsvps || {}).filter(([, s]) => s)
+  const tally = { Going: 0, Maybe: 0, 'Not Going': 0 }
+  entries.forEach(([, s]) => { if (tally[s] != null) tally[s]++ })
+  const total = entries.length
+  const nameFor = id => members.find(m => m.uid === id)?.displayName || 'Member'
+
   function handleRsvp(opt) {
-    setEventRsvp(event.id, uid, myRsvp === opt ? null : opt)
+    const newStatus = myRsvp === opt ? null : opt
+    const hadRsvp = !!event.rsvps?.[uid]
+    setEventRsvp(event.id, uid, newStatus)
+    // Notify coaches in-app on a student's FIRST rsvp to this event
+    // (naturally debounced — toggling Going<->Maybe later doesn't re-notify)
+    if (!hadRsvp && newStatus) {
+      members
+        .filter(m => (m.role === 'coach' || m.role === 'admin') && m.uid !== uid)
+        .forEach(c => createNotification(c.uid, {
+          type: 'event',
+          fromUid: uid,
+          fromName: currentUserName || 'A member',
+          text: `RSVP'd "${newStatus}" to "${event.title}"`,
+        }))
+    }
   }
 
   return (
@@ -87,6 +110,37 @@ function EventCard({ event, uid }) {
                 />
               ))}
             </Stack>
+
+            {/* RSVP summary — counts for everyone */}
+            {total > 0 && (
+              <Stack direction="row" spacing={1.5} mt={1.25} flexWrap="wrap">
+                <Typography variant="caption" sx={{ color: RSVP_COLORS.Going, fontWeight: 600 }}>
+                  ✅ {tally.Going} Going
+                </Typography>
+                <Typography variant="caption" sx={{ color: RSVP_COLORS.Maybe, fontWeight: 600 }}>
+                  🤔 {tally.Maybe} Maybe
+                </Typography>
+                <Typography variant="caption" sx={{ color: RSVP_COLORS['Not Going'], fontWeight: 600 }}>
+                  ❌ {tally['Not Going']} No
+                </Typography>
+              </Stack>
+            )}
+
+            {/* Coach-only roster — actual names per status */}
+            {isCoach && total > 0 && (
+              <Box mt={1} sx={{ p: 1, borderRadius: 1, bgcolor: 'action.hover' }}>
+                {['Going', 'Maybe', 'Not Going'].map(status => {
+                  const names = entries.filter(([, s]) => s === status).map(([id]) => nameFor(id))
+                  if (!names.length) return null
+                  return (
+                    <Typography key={status} variant="caption" color="text.secondary" display="block">
+                      <Box component="span" sx={{ color: RSVP_COLORS[status], fontWeight: 700 }}>{status}:</Box>{' '}
+                      {names.join(', ')}
+                    </Typography>
+                  )
+                })}
+              </Box>
+            )}
           </Box>
         </Stack>
       </CardContent>
@@ -132,13 +186,15 @@ function AddEventDialog({ open, onClose, onAdd }) {
 export default function Events() {
   const { userProfile, currentUser } = useAuth()
   const [events, setEvents] = useState([])
+  const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [addOpen, setAddOpen] = useState(false)
   const isCoach = userProfile?.role === 'coach' || userProfile?.role === 'admin'
 
   useEffect(() => {
-    const unsub = subscribeEvents(data => { setEvents(data); setLoading(false) })
-    return unsub
+    const unsubEvents = subscribeEvents(data => { setEvents(data); setLoading(false) })
+    const unsubMembers = subscribeMembers(setMembers)
+    return () => { unsubEvents(); unsubMembers() }
   }, [])
 
   const calendarEvents = events.map(e => ({
@@ -177,7 +233,14 @@ export default function Events() {
           ) : (
             <Stack spacing={2}>
               {events.map(ev => (
-                <EventCard key={ev.id} event={ev} uid={currentUser?.uid} />
+                <EventCard
+                  key={ev.id}
+                  event={ev}
+                  uid={currentUser?.uid}
+                  members={members}
+                  isCoach={isCoach}
+                  currentUserName={userProfile?.displayName}
+                />
               ))}
             </Stack>
           )}
