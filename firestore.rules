@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin()    { return isSignedIn() && request.auth.token.email == 'sstewart207@gmail.com'; }
+    function myDoc()      { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isApproved() { return isSignedIn() && (isAdmin() || myDoc().approved == true); }
+    function isCoach()    { return isSignedIn() && (isAdmin() || myDoc().role == 'coach' || myDoc().role == 'admin'); }
+
+    // USERS — read own (admins/coaches read all); create own w/ safe defaults;
+    // admins/coaches manage approvals & roles; users edit own profile but can't
+    // change their own approved flag or role (no self-promotion).
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin() || isCoach());
+      allow create: if isAdmin() ||
+        (request.auth.uid == uid
+         && request.resource.data.approved == false
+         && request.resource.data.role == 'pending');
+      allow update, delete: if isAdmin() || isCoach()
+        || (request.auth.uid == uid
+            && request.resource.data.approved == resource.data.approved
+            && request.resource.data.role == resource.data.role);
+    }
+
+    // POSTS (+ comments): approved members read/create; update open (likes &
+    // comment counts come from non-authors); delete restricted to author/coach.
+    match /posts/{postId} {
+      allow read, create: if isApproved();
+      allow update: if isApproved();
+      allow delete: if isApproved() && (resource.data.authorUid == request.auth.uid || isCoach());
+      match /comments/{commentId} {
+        allow read, create: if isApproved();
+        allow update: if isApproved();
+        allow delete: if isApproved() && (resource.data.authorUid == request.auth.uid || isCoach());
+      }
+    }
+
+    // EVENTS: read = approved; coaches create/delete; any approved member may
+    // UPDATE so students can RSVP (rsvps map lives on the event doc).
+    match /events/{id} {
+      allow read: if isApproved();
+      allow create, delete: if isCoach();
+      allow update: if isApproved();
+    }
+
+    // BULLETINS: read = approved; write = coach/admin only.
+    match /bulletins/{id} {
+      allow read: if isApproved();
+      allow write: if isCoach();
+    }
+
+    // TOURNAMENTS: coaches create/delete; approved members update (sign-ups).
+    match /tournaments/{id} {
+      allow read: if isApproved();
+      allow create, delete: if isCoach();
+      allow update: if isApproved();
+    }
+
+    // NOTIFICATIONS: anyone approved can send you one; only you read/mark-read.
+    match /notifications/{uid}/items/{notifId} {
+      allow read: if request.auth.uid == uid;
+      allow create: if isApproved();
+      allow update, delete: if request.auth.uid == uid;
+    }
+  }
+}
