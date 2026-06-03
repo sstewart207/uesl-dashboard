@@ -38,15 +38,15 @@ export function renderWithMentions(text, members, onProfile) {
     if (member) {
       out.push(
         <Box
-          component="span"
+          component="button"
+          type="button"
           key={key++}
-          role="link"
-          tabIndex={0}
           onClick={e => { e.stopPropagation(); onProfile(member.uid) }}
-          onKeyDown={e => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onProfile(member.uid) }
+          sx={{
+            p: 0, border: 0, background: 'none', font: 'inherit', verticalAlign: 'baseline',
+            color: 'primary.main', fontWeight: 600, cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
           }}
-          sx={{ color: 'primary.main', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
         >
           @{token}
         </Box>

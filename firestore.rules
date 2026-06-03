@@ -12,7 +12,10 @@ service cloud.firestore {
     // admins/coaches manage approvals & roles; users edit own profile but can't
     // change their own approved flag or role (no self-promotion).
     match /users/{uid} {
-      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin() || isCoach());
+      // Own doc readable even while pending (login/profile fetch); any
+      // approved member can read all users (member directory, profiles,
+      // @mention matching, RSVP rosters).
+      allow read: if isSignedIn() && (request.auth.uid == uid || isApproved());
       allow create: if isAdmin() ||
         (request.auth.uid == uid
          && request.resource.data.approved == false
@@ -47,7 +50,10 @@ service cloud.firestore {
     match /events/{id} {
       allow read: if isApproved();
       allow create, delete: if isCoach();
-      allow update: if isApproved();
+      // Coaches can edit the whole event; approved members may ONLY change
+      // the rsvps map (so they can RSVP, not rewrite the event).
+      allow update: if isCoach()
+        || (isApproved() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvps']));
     }
 
     // BULLETINS: read = approved; write = coach/admin only.
@@ -60,7 +66,10 @@ service cloud.firestore {
     match /tournaments/{id} {
       allow read: if isApproved();
       allow create, delete: if isCoach();
-      allow update: if isApproved();
+      // Coaches edit the whole tournament; approved members may ONLY change
+      // the participants list (so they can sign up, not rewrite it).
+      allow update: if isCoach()
+        || (isApproved() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participants']));
     }
 
     // NOTIFICATIONS: anyone approved can send you one; only you read/mark-read.

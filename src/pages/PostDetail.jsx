@@ -25,13 +25,23 @@ export default function PostDetail() {
 
   async function handleDeletePost() {
     if (!window.confirm('Delete this post? This cannot be undone.')) return
-    await deletePost(id)
-    navigate(-1)
+    try {
+      await deletePost(id)
+      navigate(-1)
+    } catch (e) {
+      console.error('Delete post failed:', e)
+      alert('Could not delete the post. Please try again.')
+    }
   }
 
   async function handleDeleteComment(commentId) {
     if (!window.confirm('Delete this comment?')) return
-    await deleteComment(id, commentId)
+    try {
+      await deleteComment(id, commentId)
+    } catch (e) {
+      console.error('Delete comment failed:', e)
+      alert('Could not delete the comment. Please try again.')
+    }
   }
   const [post, setPost] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -41,14 +51,21 @@ export default function PostDetail() {
   const [members, setMembers] = useState([])
 
   useEffect(() => {
-    let unsub
-    getPost(id).then(p => {
-      setPost(p)
-      setLoading(false)
-      if (p) unsub = subscribeComments(id, setComments)
-    })
+    // `active` guards against the component unmounting (or id changing)
+    // before getPost resolves — otherwise we'd subscribe to comments after
+    // unmount (leak) and setState on an unmounted component.
+    let active = true
+    let unsubComments
+    getPost(id)
+      .then(p => {
+        if (!active) return
+        setPost(p)
+        setLoading(false)
+        if (p) unsubComments = subscribeComments(id, setComments)
+      })
+      .catch(e => { if (active) { console.error('Failed to load post:', e); setLoading(false) } })
     const unsubMembers = subscribeMembers(setMembers)
-    return () => { unsub?.(); unsubMembers() }
+    return () => { active = false; unsubComments?.(); unsubMembers() }
   }, [id])
 
   if (loading) return <LoadingState label="Loading post…" />
@@ -66,6 +83,7 @@ export default function PostDetail() {
   const color = HUB_COLORS[post.hub] || '#7C3AED'
 
   async function handleLike() {
+   try {
     await togglePostLike(id, currentUser.uid)
     const updated = await getPost(id)
     setPost(updated)
@@ -79,6 +97,9 @@ export default function PostDetail() {
         postId: id,
       })
     }
+   } catch (e) {
+     console.error('Like failed:', e)
+   }
   }
 
   async function handleComment(e) {
@@ -112,6 +133,9 @@ export default function PostDetail() {
           postId: id,
         }))
       setComment('')
+    } catch (e) {
+      console.error('Comment failed:', e)
+      alert('Could not post your comment. Please try again.')
     } finally {
       setSubmitting(false)
     }
