@@ -9,11 +9,12 @@ import { formatDistanceToNow } from 'date-fns'
 import { LoadingState } from '../components/shared/States'
 import {
   getPost, subscribeComments, addComment, togglePostLike, createNotification,
-  deletePost, deleteComment,
+  deletePost, deleteComment, subscribeMembers,
 } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
 import { cleanHtml } from '../utils/sanitize'
+import { findMentions, renderWithMentions } from '../utils/mentions'
 
 export default function PostDetail() {
   const { id } = useParams()
@@ -37,6 +38,7 @@ export default function PostDetail() {
   const [comments, setComments] = useState([])
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [members, setMembers] = useState([])
 
   useEffect(() => {
     let unsub
@@ -45,7 +47,8 @@ export default function PostDetail() {
       setLoading(false)
       if (p) unsub = subscribeComments(id, setComments)
     })
-    return () => unsub?.()
+    const unsubMembers = subscribeMembers(setMembers)
+    return () => { unsub?.(); unsubMembers() }
   }, [id])
 
   if (loading) return <LoadingState label="Loading post…" />
@@ -98,6 +101,16 @@ export default function PostDetail() {
           postId: id,
         })
       }
+      // Notify anyone @mentioned (skip self + the author, who already got pinged)
+      findMentions(comment, members)
+        .filter(m => m.uid !== currentUser.uid && m.uid !== post.authorUid)
+        .forEach(m => createNotification(m.uid, {
+          type: 'mention',
+          fromUid: currentUser.uid,
+          fromName: userProfile.displayName,
+          text: `mentioned you in a comment on "${post.title}"`,
+          postId: id,
+        }))
       setComment('')
     } finally {
       setSubmitting(false)
@@ -193,7 +206,9 @@ export default function PostDetail() {
                           {formatDistanceToNow(cts, { addSuffix: true })}
                         </Typography>
                       </Stack>
-                      <Typography variant="body2" color="text.secondary" mt={0.5}>{c.body}</Typography>
+                      <Typography variant="body2" color="text.secondary" mt={0.5}>
+                        {renderWithMentions(c.body, members, uid => navigate(`/profile/${uid}`))}
+                      </Typography>
                     </Box>
                     {(isStaff || c.authorUid === currentUser?.uid) && (
                       <IconButton size="small" onClick={() => handleDeleteComment(c.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
@@ -215,7 +230,7 @@ export default function PostDetail() {
             <TextField
               value={comment}
               onChange={e => setComment(e.target.value)}
-              placeholder="Write a comment…"
+              placeholder="Write a comment… (@name to mention someone)"
               fullWidth size="small" multiline maxRows={4}
             />
             <IconButton type="submit" disabled={submitting || !comment.trim()} color="primary">
