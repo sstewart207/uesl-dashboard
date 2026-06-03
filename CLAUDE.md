@@ -31,9 +31,19 @@ React 18 + Vite · MUI v6 · Firebase (Auth + Firestore + Storage) · react-quil
 - Deploy from repo (no console pasting): `npx firebase-tools deploy --only firestore --project uesl-dashboard`. Claude can run this directly. Firebase MCP also configured in `.mcp.json`.
 - ✅ Events RSVP rule + the 2 composite indexes (posts by hub+createdAt, authorUid+createdAt) are DEPLOYED.
 
+## Features built (beyond core)
+- **Profiles editable** via EditProfileDialog: avatar upload to Storage (`uploadAvatar`), bio/games/skills, social links (Discord/Twitch/YouTube/Instagram/X) shown as chips. `SOCIALS` exported from EditProfileDialog.
+- **Coach moderation**: delete buttons on posts + comments in PostDetail (author or coach via `canApprove`); `deleteComment` helper.
+- **@mentions in comments**: `src/utils/mentions.jsx` (`findMentions`, `renderWithMentions`) — links to profiles + 'mention' notification. NOTE: regex `/@(\w+)/` has known edge cases (treats emails like a@b.com as @b; no hyphens; mention span not keyboard-accessible) — Copilot flagged, not yet fixed.
+- **Rich text sanitized** with DOMPurify (`src/utils/sanitize.js` `cleanHtml`) at every dangerouslySetInnerHTML.
+- **Mobile nav**: Sidebar renders permanent on desktop + temporary Drawer on mobile (hamburger in Navbar). Dialogs are NOT full-screen on mobile (intentionally — removed per user).
+
 ## Known gotchas / open items
 - Firebase password-reset emails land in spam (generic sender) — known, low priority.
 - Posting lives in the Hubs (Discord-room model); Home is a read-only dashboard.
 
-## Git
-Local repo (not yet on GitHub — user has an account, will publish later via GitHub Desktop). Commit when asked.
+## Git / GitHub
+- **Private repo:** github.com/sstewart207/uesl-dashboard. User authed via `gh` CLI + `firebase-tools`.
+- **PR workflow:** feature work goes on a branch → push → `gh pr create` → merge via `gh pr merge N --merge --delete-branch` → `git checkout master && git pull`. Claude does the branch/PR/merge via CLI (don't make the user click GitHub web unless they want to review).
+- Backups: GitHub (code) + a periodic full-folder zip to Google Drive (incl. `.env`).
+- Commit messages end with the Co-Authored-By line (user OK with this on a private repo).
