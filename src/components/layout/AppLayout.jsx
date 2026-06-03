@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Box } from '@mui/material'
 import { Outlet, Navigate } from 'react-router-dom'
 import Navbar from './Navbar'
@@ -7,6 +8,7 @@ import { useAuth } from '../../features/auth/AuthContext'
 
 export default function AppLayout() {
   const { currentUser, isDemoMode, isApproved } = useAuth()
+  const [mobileOpen, setMobileOpen] = useState(false)
   if (!currentUser && !isDemoMode) return <Navigate to="/login" replace />
 
   // Members must be approved by an admin/coach before they can access club content.
@@ -14,8 +16,8 @@ export default function AppLayout() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Navbar />
-      <Sidebar />
+      <Navbar onMenuClick={() => setMobileOpen(true)} />
+      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
       <Box
         component="main"
         sx={{

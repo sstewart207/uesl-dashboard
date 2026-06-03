@@ -6,7 +6,7 @@ import {
 } from '@mui/material'
 import {
   Notifications, Logout, Person, Settings,
-  LightMode, DarkMode,
+  LightMode, DarkMode, Menu as MenuIcon,
 } from '@mui/icons-material'
 import { useAuth } from '../../features/auth/AuthContext'
 import { subscribeNotifications } from '../../firebase/firestore'
@@ -14,7 +14,7 @@ import { Chip } from '@mui/material'
 import { useColorMode } from '../../theme/ColorModeContext'
 import { BrandWordmark } from '../shared/Brand'
 
-export default function Navbar() {
+export default function Navbar({ onMenuClick }) {
   const { currentUser, userProfile, logout, isDemoMode } = useAuth()
   const { mode, toggle } = useColorMode()
   const navigate = useNavigate()
@@ -37,6 +37,17 @@ export default function Navbar() {
   return (
     <AppBar position="fixed" sx={{ zIndex: theme => theme.zIndex.drawer + 1 }}>
       <Toolbar sx={{ gap: 1 }}>
+        {/* Hamburger — opens the nav drawer on mobile */}
+        <IconButton
+          color="inherit"
+          edge="start"
+          onClick={onMenuClick}
+          sx={{ display: { md: 'none' } }}
+          aria-label="open navigation"
+        >
+          <MenuIcon />
+        </IconButton>
+
         {/* Mobile brand */}
         <Box sx={{ display: { md: 'none' }, mr: 'auto' }}>
           <BrandWordmark size="sm" showSub={false} />
