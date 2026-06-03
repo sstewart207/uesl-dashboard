@@ -8,6 +8,7 @@ import {
   PhotoCamera, Forum, LiveTv, YouTube, Instagram, Tag, Close,
 } from '@mui/icons-material'
 import { updateUserProfile, uploadAvatar } from '../../firebase/firestore'
+import { useIsMobile } from '../../utils/useIsMobile'
 
 // Social platforms (no phone-based ones). MUI lacks Discord/Twitch/X brand
 // icons, so we use close-enough icons + each brand's color.
@@ -20,6 +21,7 @@ const SOCIALS = [
 ]
 
 export default function EditProfileDialog({ open, onClose, profile, onSaved }) {
+  const isMobile = useIsMobile()
   const fileRef = useRef(null)
   const [form, setForm] = useState({
     displayName: profile.displayName || '',
@@ -77,7 +79,7 @@ export default function EditProfileDialog({ open, onClose, profile, onSaved }) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile} PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
       <DialogTitle>Edit Profile</DialogTitle>
       <DialogContent>
         <Stack spacing={2.5} mt={0.5}>

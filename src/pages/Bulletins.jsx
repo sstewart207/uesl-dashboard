@@ -12,6 +12,7 @@ import { LoadingState, EmptyState } from '../components/shared/States'
 import { subscribeBulletins, createBulletin } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { cleanHtml } from '../utils/sanitize'
+import { useIsMobile } from '../utils/useIsMobile'
 
 function BulletinCard({ bulletin }) {
   const [expanded, setExpanded] = useState(false)
@@ -90,6 +91,7 @@ function BulletinCard({ bulletin }) {
 }
 
 function AddBulletinDialog({ open, onClose, onAdd }) {
+  const isMobile = useIsMobile()
   const { userProfile } = useAuth()
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
@@ -111,7 +113,7 @@ function AddBulletinDialog({ open, onClose, onAdd }) {
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile} PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
       <DialogTitle>Post Bulletin</DialogTitle>
       <Box component="form" onSubmit={handleSubmit}>
         <DialogContent>
