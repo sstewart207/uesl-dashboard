@@ -4,7 +4,7 @@ import {
   Box, Card, CardContent, Stack, Typography, Avatar, Chip,
   Divider, IconButton, Button, TextField, CircularProgress,
 } from '@mui/material'
-import { ThumbUpOutlined, ThumbUp, ArrowBack, Send, DeleteOutline } from '@mui/icons-material'
+import { ThumbUpOutlined, ThumbUp, ArrowBack, Send, DeleteOutline, Close } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import { LoadingState } from '../components/shared/States'
 import {
@@ -15,6 +15,12 @@ import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
 import { cleanHtml } from '../utils/sanitize'
 import { findMentions, renderWithMentions } from '../utils/mentions'
+import GifPicker from '../components/shared/GifPicker'
+
+// Only render GIFs served from giphy.com (don't render arbitrary user URLs as <img>).
+function isSafeGif(url) {
+  try { return new URL(url).hostname.endsWith('giphy.com') } catch { return false }
+}
 
 export default function PostDetail() {
   const { id } = useParams()
@@ -47,6 +53,7 @@ export default function PostDetail() {
   const [loading, setLoading] = useState(true)
   const [comments, setComments] = useState([])
   const [comment, setComment] = useState('')
+  const [gifUrl, setGifUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [members, setMembers] = useState([])
 
@@ -104,7 +111,7 @@ export default function PostDetail() {
 
   async function handleComment(e) {
     e.preventDefault()
-    if (!comment.trim()) return
+    if (!comment.trim() && !gifUrl) return // allow text, gif, or both
     setSubmitting(true)
     try {
       await addComment(id, {
@@ -112,6 +119,7 @@ export default function PostDetail() {
         authorName: userProfile.displayName,
         authorAvatar: userProfile.avatarUrl || '',
         body: comment.trim(),
+        gifUrl: gifUrl || '',
       })
       if (post.authorUid !== currentUser.uid) {
         createNotification(post.authorUid, {
@@ -133,6 +141,7 @@ export default function PostDetail() {
           postId: id,
         }))
       setComment('')
+      setGifUrl('')
     } catch (e) {
       console.error('Comment failed:', e)
       alert('Could not post your comment. Please try again.')
@@ -230,9 +239,15 @@ export default function PostDetail() {
                           {formatDistanceToNow(cts, { addSuffix: true })}
                         </Typography>
                       </Stack>
-                      <Typography variant="body2" color="text.secondary" mt={0.5}>
-                        {renderWithMentions(c.body, members, uid => navigate(`/profile/${uid}`))}
-                      </Typography>
+                      {c.body && (
+                        <Typography variant="body2" color="text.secondary" mt={0.5}>
+                          {renderWithMentions(c.body, members, uid => navigate(`/profile/${uid}`))}
+                        </Typography>
+                      )}
+                      {c.gifUrl && isSafeGif(c.gifUrl) && (
+                        <Box component="img" src={c.gifUrl} alt="gif" loading="lazy"
+                          sx={{ mt: 1, maxWidth: 220, width: '100%', borderRadius: 1, display: 'block' }} />
+                      )}
                     </Box>
                     {(isStaff || c.authorUid === currentUser?.uid) && (
                       <IconButton size="small" onClick={() => handleDeleteComment(c.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
@@ -247,17 +262,27 @@ export default function PostDetail() {
         </Stack>
 
         <Box component="form" onSubmit={handleComment}>
-          <Stack direction="row" spacing={1}>
+          {gifUrl && (
+            <Box sx={{ position: 'relative', display: 'inline-block', mb: 1, ml: 6 }}>
+              <Box component="img" src={gifUrl} alt="selected gif" sx={{ maxWidth: 160, borderRadius: 1, display: 'block' }} />
+              <IconButton size="small" onClick={() => setGifUrl('')}
+                sx={{ position: 'absolute', top: 2, right: 2, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' } }}>
+                <Close sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Box>
+          )}
+          <Stack direction="row" spacing={1} alignItems="flex-start">
             <Avatar src={userProfile?.avatarUrl} sx={{ width: 36, height: 36, bgcolor: 'primary.main', color: '#0B0B0F', fontWeight: 700, borderRadius: 1.5, flexShrink: 0, fontSize: 15 }}>
               {userProfile?.displayName?.[0]}
             </Avatar>
             <TextField
               value={comment}
               onChange={e => setComment(e.target.value)}
-              placeholder="Write a comment… (@name to mention someone)"
+              placeholder="Write a comment… (@name to mention, GIF button for GIFs)"
               fullWidth size="small" multiline maxRows={4}
             />
-            <IconButton type="submit" disabled={submitting || !comment.trim()} color="primary">
+            <GifPicker onSelect={setGifUrl} />
+            <IconButton type="submit" disabled={submitting || (!comment.trim() && !gifUrl)} color="primary">
               {submitting ? <CircularProgress size={20} /> : <Send />}
             </IconButton>
           </Stack>
