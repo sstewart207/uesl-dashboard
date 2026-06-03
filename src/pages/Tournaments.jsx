@@ -9,7 +9,6 @@ import { format } from 'date-fns'
 import { LoadingState, EmptyState } from '../components/shared/States'
 import { subscribeTournaments, createTournament, joinTournament } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
-import { useIsMobile } from '../utils/useIsMobile'
 
 const STATUS_META = {
   active: { label: 'Active', color: '#10B981', bg: 'rgba(16,185,129,0.15)' },
@@ -117,12 +116,11 @@ function TournamentCard({ tournament, onSignUp }) {
 }
 
 function SignUpDialog({ tournament, open, onClose, onConfirm }) {
-  const isMobile = useIsMobile()
   const { userProfile } = useAuth()
   const [gamertag, setGamertag] = useState('')
   if (!tournament) return null
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth fullScreen={isMobile} PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
       <DialogTitle>Sign Up — {tournament.title}</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" mb={2}>
@@ -146,7 +144,6 @@ function SignUpDialog({ tournament, open, onClose, onConfirm }) {
 }
 
 function CreateTournamentDialog({ open, onClose, onCreate }) {
-  const isMobile = useIsMobile()
   const [form, setForm] = useState({ title: '', game: '', bracketType: 'Single Elimination', status: 'upcoming', startDate: '', maxParticipants: 8, prize: '' })
   const [loading, setLoading] = useState(false)
   function change(f) { return e => setForm(s => ({ ...s, [f]: e.target.value })) }
@@ -160,7 +157,7 @@ function CreateTournamentDialog({ open, onClose, onCreate }) {
     } finally { setLoading(false) }
   }
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile} PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
       <DialogTitle>Create Tournament</DialogTitle>
       <Box component="form" onSubmit={submit}>
         <DialogContent>

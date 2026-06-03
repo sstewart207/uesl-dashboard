@@ -14,7 +14,6 @@ import { LoadingState, EmptyState } from '../components/shared/States'
 import { subscribeEvents, createEvent, setEventRsvp, subscribeMembers, createNotification } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
-import { useIsMobile } from '../utils/useIsMobile'
 
 const RSVP_COLORS = { Going: '#22C55E', Maybe: '#F59E0B', 'Not Going': '#FF4655' }
 const HUB_ICONS = { gaming: <SportsEsports fontSize="small" />, coding: <Code fontSize="small" />, design: <Palette fontSize="small" /> }
@@ -150,7 +149,6 @@ function EventCard({ event, uid, members = [], isCoach = false, currentUserName 
 }
 
 function AddEventDialog({ open, onClose, onAdd }) {
-  const isMobile = useIsMobile()
   const [form, setForm] = useState({ title: '', date: '', location: '', hub: 'gaming', description: '' })
   function change(field) { return e => setForm(f => ({ ...f, [field]: e.target.value })) }
   async function handleSubmit(e) {
@@ -160,7 +158,7 @@ function AddEventDialog({ open, onClose, onAdd }) {
     onClose()
   }
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile} PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { bgcolor: 'background.paper' } }}>
       <DialogTitle>Add Event</DialogTitle>
       <Box component="form" onSubmit={handleSubmit}>
         <DialogContent>
