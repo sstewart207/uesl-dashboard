@@ -57,7 +57,7 @@ export default function HubPage({ hub }) {
   }, [hub])
 
   function handleLike(postId) {
-    if (currentUser) togglePostLike(postId, currentUser.uid)
+    if (currentUser) togglePostLike(postId, currentUser.uid).catch(e => console.error('Like failed:', e))
   }
 
   let displayed = tagFilter ? posts.filter(p => p.tags?.includes(tagFilter)) : posts

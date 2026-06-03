@@ -6,6 +6,18 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { db, storage } from './firebase'
 
+// Wrap a query in a live listener WITH an error handler. Without this, a
+// failed listener (permission denied / missing index) fails silently and
+// leaves the UI stuck on "Loading…". On error we log it and return [] so
+// the component clears its loading state and shows an empty state instead.
+function subscribeQuery(q, cb, map = d => ({ id: d.id, ...d.data() })) {
+  return onSnapshot(
+    q,
+    snap => cb(snap.docs.map(map)),
+    err => { console.error('Firestore listener failed:', err); cb([]) }
+  )
+}
+
 /* ---------------- POSTS ---------------- */
 
 export async function createPost(data) {
@@ -27,9 +39,7 @@ export function subscribePosts(hub, cb) {
   } else {
     q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(50))
   }
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb)
 }
 
 export async function getPost(id) {
@@ -70,9 +80,7 @@ export async function deletePost(postId) {
 
 export function subscribeComments(postId, cb) {
   const q = query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt', 'asc'))
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb)
 }
 
 export async function addComment(postId, data) {
@@ -92,9 +100,7 @@ export async function deleteComment(postId, commentId) {
 
 export function subscribeEvents(cb) {
   const q = query(collection(db, 'events'), orderBy('date', 'asc'))
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb)
 }
 
 export async function createEvent(data) {
@@ -113,9 +119,7 @@ export async function deleteEvent(eventId) {
 
 export function subscribeBulletins(cb) {
   const q = query(collection(db, 'bulletins'), orderBy('createdAt', 'desc'))
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb)
 }
 
 export async function createBulletin(data) {
@@ -130,9 +134,7 @@ export async function deleteBulletin(id) {
 
 export function subscribeTournaments(cb) {
   const q = query(collection(db, 'tournaments'), orderBy('startDate', 'asc'))
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb)
 }
 
 export async function createTournament(data) {
@@ -149,9 +151,7 @@ export async function joinTournament(tournamentId, participant) {
 
 export function subscribeMembers(cb) {
   const q = query(collection(db, 'users'), orderBy('displayName', 'asc'))
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ uid: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb, d => ({ uid: d.id, ...d.data() }))
 }
 
 export async function getUser(uid) {
@@ -177,9 +177,7 @@ export async function uploadAvatar(uid, file) {
 // Live list of every user — used by the admin approval page.
 export function subscribeAllUsers(cb) {
   const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'))
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ uid: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb, d => ({ uid: d.id, ...d.data() }))
 }
 
 // Approve a pending user and assign their role (student | coach).
@@ -201,17 +199,21 @@ export async function revokeUser(uid) {
 
 export function subscribeNotifications(uid, cb) {
   const q = query(collection(db, 'notifications', uid, 'items'), orderBy('createdAt', 'desc'), limit(50))
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-  })
+  return subscribeQuery(q, cb)
 }
 
 export async function createNotification(forUid, data) {
-  return addDoc(collection(db, 'notifications', forUid, 'items'), {
-    ...data,
-    read: false,
-    createdAt: serverTimestamp(),
-  })
+  // Fire-and-forget at call sites — swallow + log so a failed notification
+  // write never becomes a silent unhandled rejection.
+  try {
+    return await addDoc(collection(db, 'notifications', forUid, 'items'), {
+      ...data,
+      read: false,
+      createdAt: serverTimestamp(),
+    })
+  } catch (e) {
+    console.error('createNotification failed:', e)
+  }
 }
 
 export async function markNotificationRead(uid, notifId) {

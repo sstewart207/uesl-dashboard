@@ -205,7 +205,7 @@ export default function Tournaments() {
   function handleSignUp(t) { setSelected(t); setSignUpOpen(true) }
 
   function handleConfirm(tournament) {
-    joinTournament(tournament.id, userProfile?.displayName)
+    joinTournament(tournament.id, userProfile?.displayName).catch(e => console.error('Tournament sign-up failed:', e))
   }
 
   const active = tournaments.filter(t => t.status === 'active')

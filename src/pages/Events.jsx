@@ -33,7 +33,7 @@ function EventCard({ event, uid, members = [], isCoach = false, currentUserName 
   function handleRsvp(opt) {
     const newStatus = myRsvp === opt ? null : opt
     const hadRsvp = !!event.rsvps?.[uid]
-    setEventRsvp(event.id, uid, newStatus)
+    setEventRsvp(event.id, uid, newStatus).catch(e => console.error('RSVP failed:', e))
     // Notify coaches in-app on a student's FIRST rsvp to this event
     // (naturally debounced — toggling Going<->Maybe later doesn't re-notify)
     if (!hadRsvp && newStatus) {
