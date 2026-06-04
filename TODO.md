@@ -1,7 +1,12 @@
 # UESL Dashboard — TODO (consolidated source of truth)
 
 > Single durable list. Survives Claude session resets. Update this instead of re-pasting
-> into chat. Last reconciled: 2026-06-03 (night).
+> into chat. Last reconciled: 2026-06-04.
+>
+> **GitHub sync rule:** every open GitHub issue/PR must appear here; when a PR merges or an
+> issue closes, check it off / remove it. This file = `gh issue list` + `gh pr list` + planned work.
+>
+> **Current GitHub state (2026-06-04):** open PRs: none. open issues: #7 (profanity filter → backlog item below).
 
 ## ✅ Done 2026-06-03 (tonight)
 - **Authorship spoof closed** — posts/comments pin `authorUid == request.auth.uid` (PR #8, deployed live).
