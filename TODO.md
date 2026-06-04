@@ -10,18 +10,25 @@
 - **@mentions regex** — confirmed already fixed (PR #3).
 - **Docs** — CLAUDE.md refreshed; App Check lesson written (`docs/firebase-appcheck-explained.md`).
 
-## 🔜 Tomorrow (next session) — get to a real, invitable app
+## ✅ Done 2026-06-04 (today)
+- **App Check code merged** (PR #11) — reCAPTCHA v3 init in `src/firebase/firebase.js`, guarded by
+  `VITE_RECAPTCHA_SITE_KEY`. No auth/component changes (global SDK-level).
+- **reCAPTCHA v3 key created** — site key in `.env`, secret registered in Firebase App Check.
+- **Localhost debug token registered** (`8d6a0a62-...`) — dev verified: 403s gone, tokens accepted.
+- **App Check is in MONITORING mode** (watching, not blocking). Enforcement intentionally deferred —
+  see decision B below.
+
+## 🔜 Next session — launch (get to a real, invitable app)
 Order matters; each unblocks the next.
 
-1. **Firebase Hosting** — add `hosting` block to `firebase.json` (public `dist`, SPA rewrite),
-   `npm run build`, `firebase deploy --only hosting` → live URL `https://uesl-dashboard.web.app`.
-   *This is THE unlock for inviting a real user (right now the app is localhost-only).*
-2. **App Check (bot protection)** — invisible reCAPTCHA v3. Plan in
-   `~/.claude/plans/hi-claude-i-was-crystalline-puppy.md`, lesson in `docs/firebase-appcheck-explained.md`.
-   - [ ] 2a. Add App Check init to `src/firebase/firebase.js` + `VITE_RECAPTCHA_SITE_KEY` to `.env`/`.env.example`.
-   - [ ] 2b. Console: register web app w/ reCAPTCHA v3, copy site key, register localhost debug token.
-   - [ ] 2c. Confirm verified tokens in App Check → Metrics, THEN enforce on Firestore/Auth/Storage
-         (enforcing early = lockout).
+1. **Firebase Hosting** — config is STAGED on branch `feature/firebase-hosting` (`hosting` block added,
+   `dist` + SPA rewrite, build verified). Deploy was HELD pending bot protection. To launch:
+   merge that branch → `npm run build` → `firebase deploy --only hosting` → `https://uesl-dashboard.web.app`.
+   *(If switching to Vercel/Cloudflare instead: also add the new domain to reCAPTCHA domains AND
+   Firebase Auth authorized domains, or login + App Check break. Firebase Hosting needs neither — pre-wired.)*
+2. **App Check — enforce (decision B)** — AFTER hosting is live: open the deployed site, confirm requests
+   show **verified** in Firebase → App Check → Metrics, THEN flip **Enforce** on Firestore/Auth/Storage.
+   Enforcing before prod attests = lockout, so hosting must come first.
 3. **GIF key** — add `VITE_GIPHY_API_KEY` to `.env` (PR #6 picker is dead without it). Quick.
 4. **End-to-end test pass** (Edge @ localhost:5174, then on the live URL): signup → pending →
    approve → post/comment; coach approve+revoke works, can't mint admin; bad inputs error clean.
