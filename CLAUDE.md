@@ -34,7 +34,7 @@ React 18 + Vite · MUI v6 · Firebase (Auth + Firestore + Storage) · react-quil
 ## Features built (beyond core)
 - **Profiles editable** via EditProfileDialog: avatar upload to Storage (`uploadAvatar`), bio/games/skills, social links (Discord/Twitch/YouTube/Instagram/X) shown as chips. `SOCIALS` exported from EditProfileDialog.
 - **Coach moderation**: delete buttons on posts + comments in PostDetail (author or coach via `canApprove`); `deleteComment` helper.
-- **@mentions in comments**: `src/utils/mentions.jsx` (`findMentions`, `renderWithMentions`) — links to profiles + 'mention' notification. NOTE: regex `/@(\w+)/` has known edge cases (treats emails like a@b.com as @b; no hyphens; mention span not keyboard-accessible) — Copilot flagged, not yet fixed.
+- **@mentions in comments**: `src/utils/mentions.jsx` (`findMentions`, `renderWithMentions`) — links to profiles + 'mention' notification. Regex is `/(^|[^\w])@([\w-]+)/g` (ignores emails like a@b.com, allows hyphens); mentions render as a focusable `<button>` (keyboard-accessible). Earlier Copilot edge-cases fixed in PR #3.
 - **Rich text sanitized** with DOMPurify (`src/utils/sanitize.js` `cleanHtml`) at every dangerouslySetInnerHTML.
 - **Mobile nav**: Sidebar renders permanent on desktop + temporary Drawer on mobile (hamburger in Navbar). Dialogs are NOT full-screen on mobile (intentionally — removed per user).
 
