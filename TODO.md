@@ -23,28 +23,39 @@
 - **App Check is in MONITORING mode** (watching, not blocking). Enforcement intentionally deferred —
   see decision B below.
 
-## 🔜 Next session — launch (get to a real, invitable app)
-Order matters; each unblocks the next.
+## 🎯 Definition of Done — v1 launch
+> Ship the moment ALL of these are checked. Blockers only. Everything else (below) is
+> consciously deferred. An agent finding more "improvements" does NOT move this line.
 
-1. **Firebase Hosting** — config is STAGED on branch `feature/firebase-hosting` (`hosting` block added,
-   `dist` + SPA rewrite, build verified). Deploy was HELD pending bot protection. To launch:
-   merge that branch → `npm run build` → `firebase deploy --only hosting` → `https://uesl-dashboard.web.app`.
-   *(If switching to Vercel/Cloudflare instead: also add the new domain to reCAPTCHA domains AND
-   Firebase Auth authorized domains, or login + App Check break. Firebase Hosting needs neither — pre-wired.)*
-2. **App Check — enforce (decision B)** — AFTER hosting is live: open the deployed site, confirm requests
-   show **verified** in Firebase → App Check → Metrics, THEN flip **Enforce** on Firestore/Auth/Storage.
-   Enforcing before prod attests = lockout, so hosting must come first.
-3. **GIF key** — add `VITE_GIPHY_API_KEY` to `.env` (PR #6 picker is dead without it). Quick.
-4. **End-to-end test pass** (Edge @ localhost:5174, then on the live URL): signup → pending →
-   approve → post/comment; coach approve+revoke works, can't mint admin; bad inputs error clean.
+- [ ] **B1. Storage security rules** — NO `storage.rules` in repo; `firebase.json` doesn't manage Storage;
+      but `uploadAvatar` writes there (`firestore.js:169`). Either uploads are broken OR the bucket is open.
+      Fix: add versioned `storage.rules` (approved users read; user writes only their own avatar path) →
+      wire into `firebase.json` → deploy. **← doing now**
+- [ ] **B2. Firebase Hosting** — config STAGED in `master` (`firebase.json` hosting block). To launch:
+      `npm run build` → `firebase deploy --only hosting` → `https://uesl-dashboard.web.app`.
+- [ ] **B3. App Check — enforce (decision B)** — AFTER hosting live: confirm **verified** in App Check →
+      Metrics, THEN flip **Enforce** on Firestore/Auth/Storage. (Enforce before prod attests = lockout.)
+- [ ] **B4. GIF button** — add `VITE_GIPHY_API_KEY` to `.env`, OR hide the button when the key is unset
+      (`if (import.meta.env.VITE_GIPHY_API_KEY)`). Don't ship a dead control.
+- [ ] **B5. End-to-end test pass** (Edge, then live URL): signup → pending → approve → post/comment;
+      coach approve+revoke works, can't mint admin; bad inputs error clean.
+
+## 🟢 Non-blockers — accepted for ~15-user scale (post-launch / optional)
+> Real findings, consciously NOT blocking v1. Revisit only if the app grows or one actually bites.
+- [ ] **N1. Automated tests** — none exist. Highest ROI: vitest on pure utils (`findMentions` in
+      `mentions.jsx`, `cleanHtml` in `sanitize.js`) + rules tests via Firebase emulator. Do before
+      adding big features, not before launch.
+- [ ] **N2. Bundle splitting** — single 1.6 MB chunk (457 KB gzip). `React.lazy()` + dynamic `import()`
+      on routes; lazy-load the FullCalendar page. Pure perf polish.
+- [ ] **N3. Custom claims for roles** — rules do a `get()` of the user doc on every request
+      (`isApproved`/`isCoach`). Fine at 15 users; the scale fix is auth custom claims via a Cloud Function.
+- [ ] **N4. Like-count integrity** [LOW] — `hasOnly` lets a member set `likeCount` to any value
+      (`firestore.rules:51`). Not a threat among friends.
+- [ ] **N5. Profanity / adult filter** (issue #7) — mask-or-block + DOMPurify. Social problem; trusted group.
+- [ ] **N6. Reset-email deliverability** [LOW] — needs custom domain + SPF/DKIM/DMARC. "Check spam" for now.
+- [ ] **N7. Phone control** — Remote Control (`/rc` QR) or Claude Code on web.
 
 ## 📚 Learning track (school)
-- [x] Firebase School Class 1 — Firestore security rules (taught from PR #8; see chat).
-- [ ] **Read & absorb** `docs/firebase-appcheck-explained.md` (App Check / reCAPTCHA). Ask follow-ups.
+- [x] Firebase School Class 1 — Firestore security rules (taught from PR #8).
+- [x] Firebase School Class 2 — App Check / reCAPTCHA (lived it; lesson in `docs/firebase-appcheck-explained.md`).
 - [ ] GitHub School Class 1 — branch → PR → merge → pull cycle, formalized.
-
-## 🟢 Backlog
-5. **Profanity / adult filter** (issue #7) — posts/comments/free text; mask-or-block + DOMPurify.
-6. **Reset-email spam** [LOW] — blocked: needs custom domain + SPF/DKIM/DMARC. "Check spam" for now.
-7. **Phone control** [BACKLOG] — Remote Control (`/rc` QR) or Claude Code on web.
-8. **Like-count integrity** [LOW] — accept for club scale, or move counts server-side later.
