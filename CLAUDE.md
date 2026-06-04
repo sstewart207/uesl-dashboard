@@ -30,6 +30,8 @@ React 18 + Vite · MUI v6 · Firebase (Auth + Firestore + Storage) · react-quil
 - Rules live in `firestore.rules`, indexes in `firestore.indexes.json`, wired via `firebase.json` + `.firebaserc` (project `uesl-dashboard`). User is logged in via `firebase-tools`.
 - Deploy from repo (no console pasting): `npx firebase-tools deploy --only firestore --project uesl-dashboard`. Claude can run this directly. Firebase MCP also configured in `.mcp.json`.
 - ✅ Events RSVP rule + the 2 composite indexes (posts by hub+createdAt, authorUid+createdAt) are DEPLOYED.
+- ✅ **Security hardening DEPLOYED (2026-06-03):** posts/comments `create` pin `authorUid == request.auth.uid` (no authorship spoofing); coach power over `/users` scoped to approve+revoke only (set role student/coach/pending, no admin-minting, no user deletes — delete is admin-only). Repo `firestore.rules` == live (no drift).
+- ⏳ **Not hosted yet** — `firebase.json` has no `hosting` block; app only runs on localhost. Hosting (Firebase Hosting → `uesl-dashboard.web.app`) is the next deploy step before inviting real users.
 
 ## Features built (beyond core)
 - **Profiles editable** via EditProfileDialog: avatar upload to Storage (`uploadAvatar`), bio/games/skills, social links (Discord/Twitch/YouTube/Instagram/X) shown as chips. `SOCIALS` exported from EditProfileDialog.
@@ -39,8 +41,13 @@ React 18 + Vite · MUI v6 · Firebase (Auth + Firestore + Storage) · react-quil
 - **Mobile nav**: Sidebar renders permanent on desktop + temporary Drawer on mobile (hamburger in Navbar). Dialogs are NOT full-screen on mobile (intentionally — removed per user).
 
 ## Known gotchas / open items
-- Firebase password-reset emails land in spam (generic sender) — known, low priority.
+- Firebase password-reset emails land in spam (generic sender) — known, low priority. Real fix needs a custom domain + SPF/DKIM/DMARC (deliverability is an identity problem, not code).
 - Posting lives in the Hubs (Discord-room model); Home is a read-only dashboard.
+- **DEMO_MODE is dev-only** (`import.meta.env.DEV && !VITE_FIREBASE_API_KEY`) — fails closed in prod builds (no accidental auto-admin). Seeds a fake `role:'admin'` demo user against mock data when Firebase isn't configured; real data is still protected by Firestore rules.
+- **Bot protection planned (not built):** invisible Firebase App Check w/ reCAPTCHA v3, init globally in `firebase.js`, enforced server-side on Firestore/Auth/Storage. Plan + lesson in `docs/firebase-appcheck-explained.md`. GIF picker (PR #6) needs `VITE_GIPHY_API_KEY` in `.env` to work.
+
+## Roadmap / source of truth
+- **`TODO.md`** (repo root) is the single canonical task list. Update it instead of scattering todos across chats.
 
 ## Git / GitHub
 - **Private repo:** github.com/sstewart207/uesl-dashboard. User authed via `gh` CLI + `firebase-tools`.
