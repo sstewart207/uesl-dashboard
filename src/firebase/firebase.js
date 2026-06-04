@@ -14,7 +14,11 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:000000000000:web:demo',
 }
 
-export const DEMO_MODE = !import.meta.env.VITE_FIREBASE_API_KEY
+// Demo mode (auto-admin against mock data) is a DEV-ONLY convenience for running
+// without Firebase configured. It can NEVER activate in a production build:
+// import.meta.env.DEV is false in `vite build`, so a prod deploy missing the API
+// key fails closed (auth errors) instead of silently opening as admin.
+export const DEMO_MODE = import.meta.env.DEV && !import.meta.env.VITE_FIREBASE_API_KEY
 
 // The club admin — permanent god-mode (also hardcoded in Firestore security rules).
 // Whoever logs in with this email is auto-approved as admin and can approve others.
