@@ -1,7 +1,12 @@
 # UESL Dashboard — TODO (consolidated source of truth)
 
 > Single durable list. Survives Claude session resets. Update this instead of re-pasting
-> into chat. Last reconciled: 2026-06-04.
+> into chat. Last reconciled: 2026-06-04 (session end).
+>
+> **Session-end state (2026-06-04):** B1 storage rules done+deployed. Remaining launch blockers
+> #14–#17 (hosting → enforce App Check → GIF key → e2e test) — all cheap, mostly Shane's actions.
+> App Check in monitoring (safe). Master clean + synced. Side project: Nicole's dragon site build
+> prompt saved at `Desktop\dragon-build-prompt.txt` (separate session/folder).
 >
 > **GitHub sync rule:** every open GitHub issue/PR must appear here; when a PR merges or an
 > issue closes, check it off / remove it. This file = `gh issue list` + `gh pr list` + planned work.
