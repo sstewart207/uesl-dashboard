@@ -47,6 +47,10 @@ export default function GifPicker({ onSelect }) {
     setQ('')
   }
 
+  // No Giphy key configured → hide the button entirely instead of showing a
+  // greyed-out "needs a key" control that means nothing to club members.
+  if (!KEY) return null
+
   return (
     <>
       <Tooltip title={KEY ? 'Add a GIF' : 'GIF picker needs a Giphy API key in .env'}>
