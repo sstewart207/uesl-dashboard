@@ -12,6 +12,11 @@ import { formatDistanceToNow } from 'date-fns'
 import { HUB_COLORS } from '../../theme/theme'
 import { cleanHtml } from '../../utils/sanitize'
 
+// Only render GIFs served from giphy.com (mirrors the guard in PostDetail).
+function isSafeGif(url) {
+  try { return new URL(url).hostname.endsWith('giphy.com') } catch { return false }
+}
+
 const HUB_META = {
   gaming: { label: 'Gaming', color: HUB_COLORS.gaming, icon: <SportsEsports fontSize="inherit" /> },
   coding: { label: 'Coding', color: HUB_COLORS.coding, icon: <Code fontSize="inherit" /> },
@@ -110,6 +115,12 @@ export default function PostCard({ post, onLike, compact = false }) {
             }}
             dangerouslySetInnerHTML={{ __html: cleanHtml(post.body) }}
           />
+        )}
+
+        {/* GIF thumbnail */}
+        {!compact && post.gifUrl && isSafeGif(post.gifUrl) && (
+          <Box component="img" src={post.gifUrl} alt="gif" loading="lazy"
+            sx={{ maxWidth: 240, width: '100%', borderRadius: 1, display: 'block', mb: 1.5 }} />
         )}
 
         {/* Tags */}
