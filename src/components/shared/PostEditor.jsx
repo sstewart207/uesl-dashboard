@@ -2,12 +2,14 @@ import { useState } from 'react'
 import {
   Box, Card, CardContent, TextField, Button, Stack,
   Chip, Typography, MenuItem, Select, FormControl, InputLabel,
-  CircularProgress,
+  CircularProgress, IconButton,
 } from '@mui/material'
+import { Close } from '@mui/icons-material'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import { createPost } from '../../firebase/firestore'
 import { useAuth } from '../../features/auth/AuthContext'
+import GifPicker from './GifPicker'
 
 const MODULES = {
   toolbar: [
@@ -26,6 +28,7 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
   const [hub, setHub] = useState(defaultHub)
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState([])
+  const [gifUrl, setGifUrl] = useState('')
   const [loading, setLoading] = useState(false)
 
   function addTag(e) {
@@ -39,7 +42,9 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!title.trim() || body === '<p><br></p>' || !body.trim()) return
+    // A post needs a title plus *some* content — text body or a GIF.
+    const hasBody = body && body !== '<p><br></p>' && body.trim()
+    if (!title.trim() || (!hasBody && !gifUrl)) return
     setLoading(true)
     try {
       await createPost({
@@ -49,12 +54,14 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
         hub,
         title: title.trim(),
         body,
+        gifUrl,
         tags,
       })
       setTitle('')
       setBody('')
       setTags([])
       setTagInput('')
+      setGifUrl('')
       onPosted?.()
     } finally {
       setLoading(false)
@@ -118,7 +125,18 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
               </Stack>
             </Box>
 
-            <Box display="flex" justifyContent="flex-end">
+            {gifUrl && (
+              <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                <Box component="img" src={gifUrl} alt="selected gif" sx={{ maxWidth: 220, width: '100%', borderRadius: 1, display: 'block' }} />
+                <IconButton size="small" onClick={() => setGifUrl('')}
+                  sx={{ position: 'absolute', top: 2, right: 2, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' } }}>
+                  <Close sx={{ fontSize: 14 }} />
+                </IconButton>
+              </Box>
+            )}
+
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <GifPicker onSelect={setGifUrl} />
               <Button
                 type="submit"
                 variant="contained"
