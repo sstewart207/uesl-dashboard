@@ -3,6 +3,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
+import { getDatabase } from 'firebase/database'
 
 // Replace with your Firebase project config from console.firebase.google.com
 // Copy .env.example to .env and fill in your values
@@ -13,6 +14,9 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'demo.appspot.com',
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '000000000000',
   appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:000000000000:web:demo',
+  // Realtime Database (used for online presence). Optional: only set once the
+  // RTDB instance is created in the Firebase console.
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || undefined,
 }
 
 // Demo mode (auto-admin against mock data) is a DEV-ONLY convenience for running
@@ -25,7 +29,7 @@ export const DEMO_MODE = import.meta.env.DEV && !import.meta.env.VITE_FIREBASE_A
 // Whoever logs in with this email is auto-approved as admin and can approve others.
 export const ADMIN_EMAIL = 'sstewart207@gmail.com'
 
-let app, auth, db, storage
+let app, auth, db, storage, rtdb
 
 if (!DEMO_MODE) {
   app = initializeApp(firebaseConfig)
@@ -48,6 +52,9 @@ if (!DEMO_MODE) {
   auth = getAuth(app)
   db = getFirestore(app)
   storage = getStorage(app)
+  // Realtime Database backs online-presence. Only init when a databaseURL is
+  // configured, so the app still runs before RTDB is enabled in the console.
+  rtdb = firebaseConfig.databaseURL ? getDatabase(app) : null
   // Session-only auth: closing the browser logs the user out (good for shared/club computers).
   setPersistence(auth, browserSessionPersistence).catch(() => {})
 } else {
@@ -55,8 +62,9 @@ if (!DEMO_MODE) {
   auth = null
   db = null
   storage = null
+  rtdb = null
   app = null
 }
 
-export { auth, db, storage }
+export { auth, db, storage, rtdb }
 export default app

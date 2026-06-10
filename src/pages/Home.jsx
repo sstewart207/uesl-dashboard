@@ -5,14 +5,15 @@ import {
   AvatarGroup, Tooltip, Chip, Divider,
 } from '@mui/material'
 import {
-  AddCircleOutline, CheckCircle, SportsEsports, Code, Palette,
-  CalendarMonth, Campaign, ChatBubbleOutline, ThumbUp, ArrowForward,
+  SportsEsports, Code, Palette,
+  Campaign, ChatBubbleOutline, ThumbUp,
 } from '@mui/icons-material'
 import { format, formatDistanceToNow } from 'date-fns'
 import { LoadingState } from '../components/shared/States'
 import {
   subscribePosts, subscribeEvents, subscribeMembers, subscribeBulletins,
 } from '../firebase/firestore'
+import { subscribeOnline } from '../firebase/presence'
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
 import { cleanHtml } from '../utils/sanitize'
@@ -34,11 +35,15 @@ function SectionLabel({ children, action }) {
   )
 }
 
-/* ---------- Today at Club ---------- */
+/* ---------- Today at Club — live "who's online" presence ---------- */
 function TodayWidget({ members }) {
-  const [checkedIn, setCheckedIn] = useState(false)
+  const [onlineUids, setOnlineUids] = useState([])
   const today = format(new Date(), 'EEEE, MMMM d')
-  const here = members.slice(0, checkedIn ? 4 : 3)
+
+  // Live subscription to RTDB presence; intersect with members so we only show
+  // approved people (and have their name/avatar to render).
+  useEffect(() => subscribeOnline(setOnlineUids), [])
+  const online = members.filter(m => onlineUids.includes(m.uid))
 
   return (
     <Card sx={{ borderLeft: theme => `3px solid ${theme.palette.primary.main}` }}>
@@ -50,9 +55,9 @@ function TodayWidget({ members }) {
             </Typography>
             <Typography variant="h5" fontWeight={700}>{today}</Typography>
             <Stack direction="row" alignItems="center" spacing={1} mt={0.75}>
-              {here.length > 0 && (
+              {online.length > 0 && (
                 <AvatarGroup max={5} sx={{ '& .MuiAvatar-root': { width: 26, height: 26, fontSize: 11, border: 'none' } }}>
-                  {here.map(m => (
+                  {online.map(m => (
                     <Tooltip key={m.uid} title={m.displayName}>
                       <Avatar src={m.avatarUrl} sx={{ bgcolor: 'primary.main', color: '#0B0B0F', fontWeight: 700 }}>
                         {m.displayName?.[0]}
@@ -62,18 +67,22 @@ function TodayWidget({ members }) {
                 </AvatarGroup>
               )}
               <Typography variant="caption" color="text.secondary">
-                {here.length > 0 ? `${here.length} checked in` : 'Be the first to check in'}
+                {online.length > 0 ? `${online.length} online now` : 'Nobody online right now'}
               </Typography>
             </Stack>
           </Box>
-          <Button
-            variant={checkedIn ? 'outlined' : 'contained'}
-            startIcon={checkedIn ? <CheckCircle /> : <AddCircleOutline />}
-            onClick={() => setCheckedIn(c => !c)}
-            color={checkedIn ? 'success' : 'primary'}
-          >
-            {checkedIn ? 'Checked in!' : 'Check in'}
-          </Button>
+          <Chip
+            icon={(
+              <Box sx={{
+                width: 9, height: 9, borderRadius: '50%', ml: 0.5,
+                bgcolor: online.length > 0 ? 'success.main' : 'text.disabled',
+                boxShadow: online.length > 0 ? '0 0 0 3px rgba(76,175,80,0.25)' : 'none',
+              }} />
+            )}
+            label={online.length > 0 ? `${online.length} online` : 'Offline'}
+            variant="outlined"
+            sx={{ fontWeight: 600 }}
+          />
         </Stack>
       </CardContent>
     </Card>
