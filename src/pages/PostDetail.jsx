@@ -191,11 +191,6 @@ export default function PostDetail() {
             dangerouslySetInnerHTML={{ __html: cleanHtml(post.body) }}
           />
 
-          {post.gifUrl && isSafeGif(post.gifUrl) && (
-            <Box component="img" src={post.gifUrl} alt="gif" loading="lazy"
-              sx={{ mb: 2, maxWidth: 360, width: '100%', borderRadius: 1, display: 'block' }} />
-          )}
-
           {post.tags?.length > 0 && (
             <Stack direction="row" flexWrap="wrap" gap={0.5} mb={2}>
               {post.tags.map(t => (

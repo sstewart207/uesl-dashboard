@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   Box, Card, CardContent, TextField, Button, Stack,
   Chip, Typography, MenuItem, Select, FormControl, InputLabel,
-  CircularProgress, IconButton,
+  CircularProgress,
 } from '@mui/material'
-import { Close } from '@mui/icons-material'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import { createPost } from '../../firebase/firestore'
@@ -28,8 +27,19 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
   const [hub, setHub] = useState(defaultHub)
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState([])
-  const [gifUrl, setGifUrl] = useState('')
   const [loading, setLoading] = useState(false)
+  const quillRef = useRef(null)
+
+  // Drop the chosen GIF straight into the body at the cursor (like Facebook),
+  // so it lives inside the post text instead of as a separate attachment.
+  function insertGif(url) {
+    const editor = quillRef.current?.getEditor()
+    if (!editor) return
+    const range = editor.getSelection(true)
+    const index = range ? range.index : editor.getLength()
+    editor.insertEmbed(index, 'image', url, 'user')
+    editor.setSelection(index + 1, 0)
+  }
 
   function addTag(e) {
     if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
@@ -42,9 +52,9 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    // A post needs a title plus *some* content — text body or a GIF.
+    // A post needs a title plus some content (text or an embedded GIF/image).
     const hasBody = body && body !== '<p><br></p>' && body.trim()
-    if (!title.trim() || (!hasBody && !gifUrl)) return
+    if (!title.trim() || !hasBody) return
     setLoading(true)
     try {
       await createPost({
@@ -54,14 +64,12 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
         hub,
         title: title.trim(),
         body,
-        gifUrl,
         tags,
       })
       setTitle('')
       setBody('')
       setTags([])
       setTagInput('')
-      setGifUrl('')
       onPosted?.()
     } finally {
       setLoading(false)
@@ -95,13 +103,21 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
               </FormControl>
             </Stack>
 
-            <ReactQuill
-              theme="snow"
-              value={body}
-              onChange={setBody}
-              modules={MODULES}
-              placeholder="What's on your mind?"
-            />
+            {/* Body editor — the GIF button sits in the toolbar strip and
+                inserts the GIF inline into the body, so it appears in-field. */}
+            <Box sx={{ position: 'relative' }}>
+              <ReactQuill
+                ref={quillRef}
+                theme="snow"
+                value={body}
+                onChange={setBody}
+                modules={MODULES}
+                placeholder="What's on your mind?"
+              />
+              <Box sx={{ position: 'absolute', top: 4, right: 6, zIndex: 1 }}>
+                <GifPicker onSelect={insertGif} />
+              </Box>
+            </Box>
 
             <Box>
               <TextField
@@ -125,18 +141,7 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
               </Stack>
             </Box>
 
-            {gifUrl && (
-              <Box sx={{ position: 'relative', display: 'inline-block' }}>
-                <Box component="img" src={gifUrl} alt="selected gif" sx={{ maxWidth: 220, width: '100%', borderRadius: 1, display: 'block' }} />
-                <IconButton size="small" onClick={() => setGifUrl('')}
-                  sx={{ position: 'absolute', top: 2, right: 2, bgcolor: 'rgba(0,0,0,0.6)', color: '#fff', '&:hover': { bgcolor: 'rgba(0,0,0,0.85)' } }}>
-                  <Close sx={{ fontSize: 14 }} />
-                </IconButton>
-              </Box>
-            )}
-
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <GifPicker onSelect={setGifUrl} />
+            <Box display="flex" justifyContent="flex-end">
               <Button
                 type="submit"
                 variant="contained"
