@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db, DEMO_MODE, ADMIN_EMAIL } from '../../firebase/firebase'
+import { goOnline } from '../../firebase/presence'
 
 const AuthContext = createContext(null)
 
@@ -108,17 +109,21 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (DEMO_MODE) return
+    let cleanupPresence = () => {}
     const unsub = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user)
+      cleanupPresence() // clear any prior session's presence
       if (user) {
         await ensureUserDoc(user)
         await fetchProfile(user.uid)
+        cleanupPresence = goOnline(user.uid)
       } else {
         setUserProfile(null)
+        cleanupPresence = () => {}
       }
       setLoading(false)
     })
-    return unsub
+    return () => { unsub(); cleanupPresence() }
   }, [])
 
   // Derived access flags
