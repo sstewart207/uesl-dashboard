@@ -40,8 +40,8 @@
       `npm run build` → `firebase deploy --only hosting` → `https://uesl-dashboard.web.app`.
 - [ ] **B3. App Check — enforce (decision B)** (#15) — AFTER hosting live: confirm **verified** in App Check →
       Metrics, THEN flip **Enforce** on Firestore/Auth/Storage. (Enforce before prod attests = lockout.)
-- [ ] **B4. GIF button** (#16) — add `VITE_GIPHY_API_KEY` to `.env`, OR hide the button when the key is unset
-      (`if (import.meta.env.VITE_GIPHY_API_KEY)`). Not broken today (disables gracefully).
+- [x] **B4. GIF button** (#16) — GIF picker shipped (PR #25); button disabled with tooltip when key missing,
+      `VITE_GIPHY_API_KEY` confirmed in `.env`. Done.
 - [ ] **B5. End-to-end test pass** (#17) (Edge, then live URL): signup → pending → approve → post/comment;
       coach approve+revoke works, can't mint admin; bad inputs error clean.
 
