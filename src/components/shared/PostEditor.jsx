@@ -9,6 +9,7 @@ import 'react-quill-new/dist/quill.snow.css'
 import { createPost } from '../../firebase/firestore'
 import { useAuth } from '../../features/auth/AuthContext'
 import GifPicker from './GifPicker'
+import { parseVideoUrl } from '../../utils/video'
 
 const MODULES = {
   toolbar: [
@@ -28,6 +29,8 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags] = useState([])
   const [loading, setLoading] = useState(false)
+  const [videoInput, setVideoInput] = useState('')
+  const [videoParsed, setVideoParsed] = useState(null)
   const quillRef = useRef(null)
 
   // Drop the chosen GIF straight into the body at the cursor (like Facebook),
@@ -39,6 +42,12 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
     const index = range ? range.index : editor.getLength()
     editor.insertEmbed(index, 'image', url, 'user')
     editor.setSelection(index + 1, 0)
+  }
+
+  function handleVideoInput(e) {
+    const val = e.target.value
+    setVideoInput(val)
+    setVideoParsed(parseVideoUrl(val))
   }
 
   function addTag(e) {
@@ -65,11 +74,14 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
         title: title.trim(),
         body,
         tags,
+        ...(videoParsed ? { videoUrl: videoInput.trim() } : {}),
       })
       setTitle('')
       setBody('')
       setTags([])
       setTagInput('')
+      setVideoInput('')
+      setVideoParsed(null)
       onPosted?.()
     } finally {
       setLoading(false)
@@ -139,6 +151,31 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
                   />
                 ))}
               </Stack>
+            </Box>
+
+            <Box>
+              <TextField
+                label="Video URL (optional)"
+                placeholder="Paste a YouTube or Twitch URL…"
+                value={videoInput}
+                onChange={handleVideoInput}
+                size="small"
+                fullWidth
+              />
+              {videoInput && (
+                <Stack direction="row" alignItems="center" spacing={1} mt={0.75}>
+                  {videoParsed ? (
+                    <Chip
+                      label={`✓ ${videoParsed.label}`}
+                      size="small"
+                      onDelete={() => { setVideoInput(''); setVideoParsed(null) }}
+                      sx={{ bgcolor: 'rgba(34,197,94,0.15)', color: '#22C55E', borderColor: 'rgba(34,197,94,0.3)', border: '1px solid' }}
+                    />
+                  ) : (
+                    <Typography variant="caption" color="error.main">Not a recognised YouTube or Twitch URL</Typography>
+                  )}
+                </Stack>
+              )}
             </Box>
 
             <Box display="flex" justifyContent="flex-end">
