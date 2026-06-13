@@ -5,12 +5,12 @@
 >
 > **Session-end state (2026-06-13):** All launch blockers done. App live + App Check enforced.
 > #30 (bulletin delete) and #31 (event delete) fixed. PostCard delete added. Milestones + labels added to GitHub.
-> Master clean + synced. Open issues: #29, #32, #33, #28.
+> #33 (video embed) fully done (PRs #46–#49). Open issues: #32, #37, #28.
 >
 > **GitHub sync rule:** every open GitHub issue/PR must appear here; when a PR merges or an
 > issue closes, check it off / remove it. This file = `gh issue list` + `gh pr list` + planned work.
 >
-> **Current GitHub state (2026-06-13):** open PRs: none. Open issues: post-launch `#7,#18,#20–#23,#28,#29,#32,#33`.
+> **Current GitHub state (2026-06-13):** open PRs: none. Open issues: post-launch `#7,#18,#20–#23,#28,#32,#37`.
 
 ## ✅ Done 2026-06-03 (tonight)
 - **Authorship spoof closed** — posts/comments pin `authorUid == request.auth.uid` (PR #8, deployed live).
@@ -65,10 +65,11 @@
 - [x] **#31 Coaches can't delete events** — DONE 2026-06-13 (PR #35). Wired up `deleteEvent()` in `Events.jsx`.
 - [x] **Post delete on card** — DONE 2026-06-13. Trash icon on PostCard for author + coach, in hub feed and profile view.
 - [x] **#29 Settings dead link** — DONE 2026-06-13 (PR #38). Removed dead menu item. User deletion → admin panel (#37).
-- [ ] **#32 Fake online presence dots** — `Profile.jsx` hardcodes green dot; `Members.jsx` uses `index % 3`. Remove dots or wire up real presence.
-- [ ] **#33 Inline video embed** (feature) — paste YouTube/Twitch URL → renders as iframe player in post. Files: PostEditor, PostCard, PostDetail, firestore.js. ~30 min.
+- [x] **#32 Fake online presence dots** — DONE (PR #41). Wired up real RTDB presence in Profile.jsx and Members.jsx.
+- [x] **#33 Inline video embed** — DONE (PRs #46, #47, #48, #49). YouTube/Twitch iframe embed, all URL formats, auto-detect from title/body.
 - [ ] **#37 Coach-handled user deletion** — coaches can already approve/revoke; add delete to admin panel. Firestore doc deletion easy; Firebase Auth deletion needs admin SDK (Spark plan limitation — flag when building).
 - [ ] **#28 Home dashboard redesign** — redesign Home as a proper club dashboard.
+- [ ] **#43 Supabase research** — research self-hosted Supabase as a free-tier alternative to Firebase (if Firebase limits ever become a constraint).
 
 ## 📚 Learning track (school)
 - [x] Firebase School Class 1 — Firestore security rules (taught from PR #8).

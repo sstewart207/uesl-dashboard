@@ -61,7 +61,10 @@ export default function PostEditor({ defaultHub = 'gaming', onPosted }) {
 
   function handleBodyChange(val) {
     setBody(val)
-    if (!detectedVideoUrl) scanForVideo(val.replace(/<[^>]+>/g, ' '))
+    if (!detectedVideoUrl) {
+      const withHrefs = val.replace(/href="([^"]*)"/g, ' $1 ')
+      scanForVideo(withHrefs.replace(/<[^>]+>/g, ' '))
+    }
   }
 
   function addTag(e) {
