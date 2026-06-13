@@ -34,8 +34,7 @@
 
 - [x] **B1. Storage security rules** — DONE + deployed (PR #13). `storage.rules`: user writes only their
       own `avatars/{uid}/` folder (images <5MB), signed-in read, deny-all else. Wired into `firebase.json`.
-- [ ] **B2. Firebase Hosting** (#14) — config STAGED in `master` (`firebase.json` hosting block). To launch:
-      `npm run build` → `firebase deploy --only hosting` → `https://uesl-dashboard.web.app`.
+- [x] **B2. Firebase Hosting** (#14) — DONE 2026-06-12. Live at `https://uesl-dashboard.web.app`.
 - [ ] **B3. App Check — enforce (decision B)** (#15) — AFTER hosting live: confirm **verified** in App Check →
       Metrics, THEN flip **Enforce** on Firestore/Auth/Storage. (Enforce before prod attests = lockout.)
 - [x] **B4. GIF button** (#16) — GIF picker shipped (PR #25); button disabled with tooltip when key missing,
