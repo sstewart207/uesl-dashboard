@@ -8,7 +8,7 @@ import { Edit, SportsEsports } from '@mui/icons-material'
 import PostCard from '../components/shared/PostCard'
 import { LoadingState } from '../components/shared/States'
 import EditProfileDialog, { SOCIALS } from '../components/shared/EditProfileDialog'
-import { getUser, getPostsByAuthor } from '../firebase/firestore'
+import { getUser, getPostsByAuthor, deletePost } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 
 // Normalize a handle/url into a clickable link
@@ -27,7 +27,7 @@ const AVATAR_BG = ['#FFD60A', '#FF4655', '#22D3EE', '#F472B6', '#22C55E']
 
 export default function Profile() {
   const { uid } = useParams()
-  const { userProfile, fetchProfile } = useAuth()
+  const { userProfile, currentUser, canApprove } = useAuth()
   const [tab, setTab] = useState(0)
   const [member, setMember] = useState(null)
   const [memberPosts, setMemberPosts] = useState([])
@@ -179,7 +179,11 @@ export default function Profile() {
           <Grid container spacing={2}>
             {memberPosts.map(p => (
               <Grid item xs={12} sm={6} key={p.id}>
-                <PostCard post={p} compact />
+                <PostCard
+                  post={p}
+                  compact
+                  onDelete={(canApprove || p.authorUid === currentUser?.uid) ? id => { if (window.confirm('Delete this post? This cannot be undone.')) deletePost(id) } : undefined}
+                />
               </Grid>
             ))}
           </Grid>

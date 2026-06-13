@@ -7,7 +7,7 @@ import { SportsEsports, Code, Palette } from '@mui/icons-material'
 import PostCard from '../components/shared/PostCard'
 import PostEditor from '../components/shared/PostEditor'
 import { LoadingState, EmptyState } from '../components/shared/States'
-import { subscribePosts, togglePostLike } from '../firebase/firestore'
+import { subscribePosts, togglePostLike, deletePost } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 
 import { HUB_COLORS } from '../theme/theme'
@@ -44,7 +44,7 @@ const SORT_OPTIONS = [
 
 export default function HubPage({ hub }) {
   const meta = HUB_META[hub]
-  const { currentUser } = useAuth()
+  const { currentUser, canApprove } = useAuth()
   const [sort, setSort] = useState('latest')
   const [tagFilter, setTagFilter] = useState(null)
   const [posts, setPosts] = useState([])
@@ -58,6 +58,11 @@ export default function HubPage({ hub }) {
 
   function handleLike(postId) {
     if (currentUser) togglePostLike(postId, currentUser.uid).catch(e => console.error('Like failed:', e))
+  }
+
+  async function handleDelete(postId) {
+    if (!window.confirm('Delete this post? This cannot be undone.')) return
+    await deletePost(postId)
   }
 
   let displayed = tagFilter ? posts.filter(p => p.tags?.includes(tagFilter)) : posts
@@ -157,6 +162,7 @@ export default function HubPage({ hub }) {
               <PostCard
                 post={{ ...post, likedByMe: post.likedBy?.includes(currentUser?.uid) }}
                 onLike={handleLike}
+                onDelete={(canApprove || post.authorUid === currentUser?.uid) ? handleDelete : undefined}
               />
             </Grid>
           ))}

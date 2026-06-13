@@ -6,7 +6,7 @@ import {
 } from '@mui/material'
 import {
   ThumbUp, ThumbUpOutlined, ChatBubbleOutline,
-  SportsEsports, Code, Palette, PushPin,
+  SportsEsports, Code, Palette, PushPin, DeleteOutline,
 } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import { HUB_COLORS } from '../../theme/theme'
@@ -18,7 +18,7 @@ const HUB_META = {
   design: { label: 'Design', color: HUB_COLORS.design, icon: <Palette fontSize="inherit" /> },
 }
 
-export default function PostCard({ post, onLike, compact = false }) {
+export default function PostCard({ post, onLike, onDelete, compact = false }) {
   const navigate = useNavigate()
   const hub = HUB_META[post.hub] || HUB_META.gaming
   const [liked, setLiked] = useState(post.likedByMe || false)
@@ -144,6 +144,18 @@ export default function PostCard({ post, onLike, compact = false }) {
         <Typography variant="caption" color="text.secondary">
           {post.commentCount || 0}
         </Typography>
+
+        {onDelete && (
+          <Tooltip title="Delete post">
+            <IconButton
+              size="small"
+              onClick={e => { e.stopPropagation(); onDelete(post.id) }}
+              sx={{ ml: 'auto', color: 'text.secondary', '&:hover': { color: 'error.main' } }}
+            >
+              <DeleteOutline fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
       </CardActions>
     </Card>
   )
