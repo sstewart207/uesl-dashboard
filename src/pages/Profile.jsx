@@ -9,6 +9,7 @@ import PostCard from '../components/shared/PostCard'
 import { LoadingState } from '../components/shared/States'
 import EditProfileDialog, { SOCIALS } from '../components/shared/EditProfileDialog'
 import { getUser, getPostsByAuthor, deletePost } from '../firebase/firestore'
+import { subscribeOnline } from '../firebase/presence'
 import { useAuth } from '../features/auth/AuthContext'
 
 // Normalize a handle/url into a clickable link
@@ -33,6 +34,11 @@ export default function Profile() {
   const [memberPosts, setMemberPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
+  const [isOnline, setIsOnline] = useState(false)
+
+  useEffect(() => {
+    return subscribeOnline(uids => setIsOnline(uids.includes(uid)))
+  }, [uid])
 
   function load() {
     return Promise.all([getUser(uid), getPostsByAuthor(uid)]).then(([u, posts]) => {
@@ -85,7 +91,8 @@ export default function Profile() {
                 sx={{
                   position: 'absolute', bottom: 4, right: 4,
                   width: 16, height: 16, borderRadius: '50%',
-                  bgcolor: '#22C55E', border: theme => `3px solid ${theme.palette.background.paper}`,
+                  bgcolor: isOnline ? '#22C55E' : 'grey.600',
+                  border: theme => `3px solid ${theme.palette.background.paper}`,
                 }}
               />
             </Box>
