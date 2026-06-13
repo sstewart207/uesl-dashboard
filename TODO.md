@@ -3,15 +3,14 @@
 > Single durable list. Survives Claude session resets. Update this instead of re-pasting
 > into chat. Last reconciled: 2026-06-12 (session end).
 >
-> **Session-end state (2026-06-12):** PRs #26 + #27 merged. PR #24 closed (stale). Repo made PUBLIC.
-> 5 new issues filed (#29–#33). Master clean + synced. GIFs in posts + live presence now in master.
-> Bundle splitting live. Launch blockers #14, #15, #17 remain (all user actions).
+> **Session-end state (2026-06-13):** All launch blockers done. App live + App Check enforced.
+> #30 (bulletin delete) and #31 (event delete) fixed. PostCard delete added. Milestones + labels added to GitHub.
+> Master clean + synced. Open issues: #29, #32, #33, #28.
 >
 > **GitHub sync rule:** every open GitHub issue/PR must appear here; when a PR merges or an
 > issue closes, check it off / remove it. This file = `gh issue list` + `gh pr list` + planned work.
 >
-> **Current GitHub state (2026-06-12):** open PRs: none. Open issues: launch-blockers `#14,#15,#17`;
-> post-launch `#7,#18–#23,#28–#33`.
+> **Current GitHub state (2026-06-13):** open PRs: none. Open issues: post-launch `#7,#18,#20–#23,#28,#29,#32,#33`.
 
 ## ✅ Done 2026-06-03 (tonight)
 - **Authorship spoof closed** — posts/comments pin `authorUid == request.auth.uid` (PR #8, deployed live).
@@ -38,8 +37,7 @@
 - [x] **B3. App Check — enforce** (#15) — DONE 2026-06-12. Firestore, Auth, Storage all enforced in Firebase Console.
 - [x] **B4. GIF button** (#16) — GIF picker shipped (PR #25); button disabled with tooltip when key missing,
       `VITE_GIPHY_API_KEY` confirmed in `.env`. Done.
-- [ ] **B5. End-to-end test pass** (#17) (Edge, then live URL): signup → pending → approve → post/comment;
-      coach approve+revoke works, can't mint admin; bad inputs error clean.
+- [x] **B5. End-to-end test pass** (#17) — DONE 2026-06-13. Logged in, posted, commented on GIF post, persisted on refresh.
 
 ## 🟢 Non-blockers — accepted for ~15-user scale (post-launch / optional)
 > Real findings, consciously NOT blocking v1. Revisit only if the app grows or one actually bites.
@@ -62,10 +60,11 @@
 - **Repo made public** — github.com/sstewart207/uesl-dashboard is now public.
 - **5 new issues filed** (#29–#33) — see bugs section below.
 
-## 🐛 Bugs (post-launch, filed 2026-06-12)
+## 🐛 Bugs / features (post-launch)
+- [x] **#30 Coaches can't delete bulletins** — DONE 2026-06-13. Wired up `deleteBulletin()` in `Bulletins.jsx`.
+- [x] **#31 Coaches can't delete events** — DONE 2026-06-13 (PR #35). Wired up `deleteEvent()` in `Events.jsx`.
+- [x] **Post delete on card** — DONE 2026-06-13. Trash icon on PostCard for author + coach, in hub feed and profile view.
 - [ ] **#29 Settings dead link** — Navbar "Settings" navigates to `/settings` but no route exists. Fix: build the page or remove the menu item.
-- [ ] **#30 Coaches can't delete bulletins** — `deleteBulletin()` exists in `firestore.js` but not wired up in `Bulletins.jsx`. Quick fix.
-- [ ] **#31 Coaches can't delete events** — `deleteEvent()` exists in `firestore.js` but not wired up in `Events.jsx`. Quick fix.
 - [ ] **#32 Fake online presence dots** — `Profile.jsx` hardcodes green dot; `Members.jsx` uses `index % 3`. Remove dots or wire up real presence.
 - [ ] **#33 Inline video embed** (feature) — paste YouTube/Twitch URL → renders as iframe player in post. Files: PostEditor, PostCard, PostDetail, firestore.js. ~30 min.
 
