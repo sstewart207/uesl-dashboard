@@ -34,6 +34,20 @@ export function parseVideoUrl(raw) {
     }
   }
 
+  // Twitch VOD — twitch.tv/videos/VIDEO_ID
+  const twitchVod = url.match(/twitch\.tv\/videos\/(\d+)/)
+  if (twitchVod) {
+    const parent = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? window.location.hostname : 'localhost'
+    return {
+      type: 'twitch',
+      embedUrl: `https://player.twitch.tv/?video=${twitchVod[1]}&parent=${parent}`,
+      thumbnailUrl: null,
+      label: `Twitch VOD`,
+      parent,
+    }
+  }
+
   // Twitch clip — clips.twitch.tv/ClipID or twitch.tv/*/clip/ClipID
   const twitchClip =
     url.match(/clips\.twitch\.tv\/([\w-]+)/) ||
