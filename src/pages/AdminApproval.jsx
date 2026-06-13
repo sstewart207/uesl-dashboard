@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import {
   Box, Stack, Typography, Card, CardContent, Button, Chip,
-  Avatar, Divider, Select, MenuItem, Tabs, Tab,
+  Avatar, Divider, Select, MenuItem, Tabs, Tab, IconButton, Tooltip,
 } from '@mui/material'
-import { VerifiedUser, CheckCircle, Block, HourglassTop } from '@mui/icons-material'
+import { VerifiedUser, CheckCircle, Block, HourglassTop, DeleteOutline } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import { LoadingState, EmptyState } from '../components/shared/States'
-import { subscribeAllUsers, approveUser, setUserRole, revokeUser } from '../firebase/firestore'
+import { subscribeAllUsers, approveUser, setUserRole, revokeUser, deleteUserDoc } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 
 const ROLE_COLORS = {
@@ -17,7 +17,7 @@ const ROLE_COLORS = {
   pending: { bg: 'rgba(245,158,11,0.15)', color: '#F59E0B' },
 }
 
-function UserRow({ u, isPending }) {
+function UserRow({ u, isPending, onDelete }) {
   const role = ROLE_COLORS[u.role] || ROLE_COLORS.student
   const joined = u.createdAt?.toDate?.()
   return (
@@ -42,13 +42,18 @@ function UserRow({ u, isPending }) {
           </Box>
 
           {isPending ? (
-            <Stack direction="row" spacing={1} flexShrink={0}>
+            <Stack direction="row" spacing={1} flexShrink={0} alignItems="center">
               <Button size="small" variant="outlined" startIcon={<CheckCircle />} onClick={() => approveUser(u.uid, 'student')}>
                 As Student
               </Button>
               <Button size="small" variant="contained" startIcon={<CheckCircle />} onClick={() => approveUser(u.uid, 'coach')}>
                 As Coach
               </Button>
+              <Tooltip title="Delete signup">
+                <IconButton size="small" onClick={onDelete} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                  <DeleteOutline fontSize="small" />
+                </IconButton>
+              </Tooltip>
             </Stack>
           ) : (
             <Stack direction="row" spacing={1} alignItems="center" flexShrink={0}>
@@ -64,9 +69,16 @@ function UserRow({ u, isPending }) {
                 {u.role === 'admin' && <MenuItem value="admin">Admin</MenuItem>}
               </Select>
               {u.role !== 'admin' && (
-                <Button size="small" color="error" startIcon={<Block />} onClick={() => revokeUser(u.uid)}>
-                  Revoke
-                </Button>
+                <>
+                  <Button size="small" color="error" startIcon={<Block />} onClick={() => revokeUser(u.uid)}>
+                    Revoke
+                  </Button>
+                  <Tooltip title="Delete member">
+                    <IconButton size="small" onClick={onDelete} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                      <DeleteOutline fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </>
               )}
             </Stack>
           )}
@@ -120,7 +132,18 @@ export default function AdminApproval() {
         />
       ) : (
         <Stack spacing={1.5}>
-          {list.map(u => <UserRow key={u.uid} u={u} isPending={tab === 0} />)}
+          {list.map(u => (
+            <UserRow
+              key={u.uid}
+              u={u}
+              isPending={tab === 0}
+              onDelete={() => {
+                if (window.confirm(`Remove ${u.displayName}? They can re-register with the same email.`)) {
+                  deleteUserDoc(u.uid)
+                }
+              }}
+            />
+          ))}
         </Stack>
       )}
     </Box>
