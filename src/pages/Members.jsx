@@ -7,6 +7,7 @@ import {
 import { Search, SportsEsports, Code, Palette, People } from '@mui/icons-material'
 import { LoadingState, EmptyState } from '../components/shared/States'
 import { subscribeMembers } from '../firebase/firestore'
+import { subscribeOnline } from '../firebase/presence'
 
 const ROLE_COLORS = {
   coach: { bg: 'rgba(255,214,10,0.18)', color: '#E6B800' },
@@ -16,7 +17,7 @@ const ROLE_COLORS = {
 
 const AVATAR_BG = ['#FFD60A', '#FF4655', '#22D3EE', '#F472B6', '#22C55E', '#F59E0B']
 
-function MemberCard({ member, index }) {
+function MemberCard({ member, index, isOnline }) {
   const navigate = useNavigate()
   const role = ROLE_COLORS[member.role] || ROLE_COLORS.student
   return (
@@ -45,8 +46,8 @@ function MemberCard({ member, index }) {
               sx={{
                 position: 'absolute', bottom: 2, right: 2,
                 width: 12, height: 12, borderRadius: '50%',
-                bgcolor: index % 3 === 0 ? '#22C55E' : 'transparent',
-                border: theme => index % 3 === 0 ? `2px solid ${theme.palette.background.paper}` : 'none',
+                bgcolor: isOnline ? '#22C55E' : 'transparent',
+                border: theme => isOnline ? `2px solid ${theme.palette.background.paper}` : 'none',
               }}
             />
           </Box>
@@ -87,10 +88,12 @@ export default function Members() {
   const [roleFilter, setRoleFilter] = useState('all')
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [onlineUids, setOnlineUids] = useState([])
 
   useEffect(() => {
     const unsub = subscribeMembers(data => { setMembers(data); setLoading(false) })
-    return unsub
+    const unsubPresence = subscribeOnline(setOnlineUids)
+    return () => { unsub(); unsubPresence() }
   }, [])
 
   const filtered = members.filter(m => {
@@ -146,7 +149,7 @@ export default function Members() {
         <Grid container spacing={2}>
           {filtered.map((m, i) => (
             <Grid item xs={6} sm={4} md={3} lg={2} key={m.uid}>
-              <MemberCard member={m} index={i} />
+              <MemberCard member={m} index={i} isOnline={onlineUids.includes(m.uid)} />
             </Grid>
           ))}
         </Grid>
