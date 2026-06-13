@@ -5,7 +5,7 @@ import {
   MenuItem, Typography, Box, Divider, Stack, Tooltip,
 } from '@mui/material'
 import {
-  Notifications, Logout, Person, Settings,
+  Notifications, Logout, Person,
   LightMode, DarkMode, Menu as MenuIcon,
 } from '@mui/icons-material'
 import { useAuth } from '../../features/auth/AuthContext'
@@ -106,10 +106,6 @@ export default function Navbar({ onMenuClick }) {
           <MenuItem onClick={() => { navigate(`/profile/${userProfile?.uid}`); setAnchorEl(null) }}>
             <Person fontSize="small" sx={{ mr: 1.5, color: 'text.secondary' }} />
             My Profile
-          </MenuItem>
-          <MenuItem onClick={() => { navigate('/settings'); setAnchorEl(null) }}>
-            <Settings fontSize="small" sx={{ mr: 1.5, color: 'text.secondary' }} />
-            Settings
           </MenuItem>
           <Divider />
           <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
