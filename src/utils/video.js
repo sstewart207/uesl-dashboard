@@ -1,3 +1,10 @@
+// Finds the first YouTube or Twitch URL in any string and returns it, or null.
+export function extractVideoUrl(text) {
+  if (!text) return null
+  const match = text.match(/https?:\/\/(?:(?:www\.|m\.)?(?:youtube\.com|youtu\.be|twitch\.tv|clips\.twitch\.tv))[^\s"'<>]*/i)
+  return match ? match[0] : null
+}
+
 // Parses a YouTube or Twitch URL and returns embed info, or null if not recognised.
 // Returns: { type, embedUrl, thumbnailUrl, label } or null
 export function parseVideoUrl(raw) {
