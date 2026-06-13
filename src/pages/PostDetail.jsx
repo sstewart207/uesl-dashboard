@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
 import { cleanHtml } from '../utils/sanitize'
+import { parseVideoUrl } from '../utils/video'
 import { findMentions, renderWithMentions } from '../utils/mentions'
 import GifPicker from '../components/shared/GifPicker'
 
@@ -190,6 +191,23 @@ export default function PostDetail() {
             sx={{ mb: 2, '& p': { mb: 1 }, '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.5, borderRadius: 0.5 }, '& img': { maxWidth: '100%', borderRadius: 1 } }}
             dangerouslySetInnerHTML={{ __html: cleanHtml(post.body) }}
           />
+
+          {post.videoUrl && (() => {
+            const v = parseVideoUrl(post.videoUrl)
+            if (!v) return null
+            return (
+              <Box sx={{ position: 'relative', width: '100%', paddingTop: '56.25%', mb: 2, borderRadius: 1.5, overflow: 'hidden', bgcolor: '#000' }}>
+                <Box
+                  component="iframe"
+                  src={v.embedUrl}
+                  title={v.label}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                />
+              </Box>
+            )
+          })()}
 
           {post.tags?.length > 0 && (
             <Stack direction="row" flexWrap="wrap" gap={0.5} mb={2}>

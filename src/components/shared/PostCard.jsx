@@ -11,6 +11,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { HUB_COLORS } from '../../theme/theme'
 import { cleanHtml } from '../../utils/sanitize'
+import { parseVideoUrl } from '../../utils/video'
 
 const HUB_META = {
   gaming: { label: 'Gaming', color: HUB_COLORS.gaming, icon: <SportsEsports fontSize="inherit" /> },
@@ -111,6 +112,41 @@ export default function PostCard({ post, onLike, onDelete, compact = false }) {
             dangerouslySetInnerHTML={{ __html: cleanHtml(post.body) }}
           />
         )}
+
+        {/* Video thumbnail */}
+        {post.videoUrl && (() => {
+          const v = parseVideoUrl(post.videoUrl)
+          if (!v) return null
+          return (
+            <Box
+              mt={1}
+              sx={{
+                position: 'relative', borderRadius: 1.5, overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              {v.thumbnailUrl ? (
+                <Box component="img" src={v.thumbnailUrl} alt="Video preview"
+                  sx={{ width: '100%', display: 'block', maxHeight: 160, objectFit: 'cover' }} />
+              ) : (
+                <Box sx={{ bgcolor: 'rgba(100,65,165,0.25)', height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">{v.label}</Typography>
+                </Box>
+              )}
+              <Box sx={{
+                position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                bgcolor: 'rgba(0,0,0,0.3)',
+              }}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: '50%', bgcolor: 'rgba(0,0,0,0.7)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Typography sx={{ color: '#fff', fontSize: 18, lineHeight: 1, pl: 0.5 }}>▶</Typography>
+                </Box>
+              </Box>
+            </Box>
+          )
+        })()}
 
         {/* Tags */}
         {post.tags?.length > 0 && (
