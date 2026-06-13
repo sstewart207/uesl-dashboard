@@ -4,63 +4,60 @@ export function parseVideoUrl(raw) {
   if (!raw) return null
   const url = raw.trim()
 
-  // YouTube — watch URLs and short youtu.be links
-  const ytLong = url.match(/(?:youtube\.com\/watch\?(?:.*&)?v=)([\w-]{11})/)
+  const host = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? window.location.hostname : 'localhost'
+
+  // YouTube — watch, short link, live, and shorts
+  const ytWatch = url.match(/[?&]v=([\w-]{11})/)
   const ytShort = url.match(/youtu\.be\/([\w-]{11})/)
-  const ytId = (ytLong || ytShort)?.[1]
+  const ytLive  = url.match(/youtube\.com\/live\/([\w-]{11})/)
+  const ytShorts = url.match(/youtube\.com\/shorts\/([\w-]{11})/)
+  const ytId = (ytWatch || ytShort || ytLive || ytShorts)?.[1]
   if (ytId) {
-    const parent = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? window.location.hostname : 'localhost'
     return {
       type: 'youtube',
       embedUrl: `https://www.youtube.com/embed/${ytId}`,
       thumbnailUrl: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
       label: 'YouTube',
-      parent,
+      parent: host,
     }
   }
 
-  // Twitch channel — twitch.tv/channelname
-  const twitchChannel = url.match(/twitch\.tv\/([a-zA-Z0-9_]+)(?:\s|$|\/?)(?!videos|clips|clip)/)
-  if (twitchChannel) {
-    const parent = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? window.location.hostname : 'localhost'
-    return {
-      type: 'twitch',
-      embedUrl: `https://player.twitch.tv/?channel=${twitchChannel[1]}&parent=${parent}`,
-      thumbnailUrl: null,
-      label: `Twitch — ${twitchChannel[1]}`,
-      parent,
-    }
-  }
-
-  // Twitch VOD — twitch.tv/videos/VIDEO_ID
+  // Twitch VOD — twitch.tv/videos/ID (must be before channel match)
   const twitchVod = url.match(/twitch\.tv\/videos\/(\d+)/)
   if (twitchVod) {
-    const parent = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? window.location.hostname : 'localhost'
     return {
       type: 'twitch',
-      embedUrl: `https://player.twitch.tv/?video=${twitchVod[1]}&parent=${parent}`,
+      embedUrl: `https://player.twitch.tv/?video=${twitchVod[1]}&parent=${host}`,
       thumbnailUrl: null,
-      label: `Twitch VOD`,
-      parent,
+      label: 'Twitch VOD',
+      parent: host,
     }
   }
 
-  // Twitch clip — clips.twitch.tv/ClipID or twitch.tv/*/clip/ClipID
+  // Twitch clip — clips.twitch.tv/ID or twitch.tv/*/clip/ID (must be before channel match)
   const twitchClip =
     url.match(/clips\.twitch\.tv\/([\w-]+)/) ||
     url.match(/twitch\.tv\/\w+\/clip\/([\w-]+)/)
   if (twitchClip) {
-    const parent = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
-      ? window.location.hostname : 'localhost'
     return {
       type: 'twitch',
-      embedUrl: `https://clips.twitch.tv/embed?clip=${twitchClip[1]}&parent=${parent}`,
+      embedUrl: `https://clips.twitch.tv/embed?clip=${twitchClip[1]}&parent=${host}`,
       thumbnailUrl: null,
-      label: `Twitch Clip`,
-      parent,
+      label: 'Twitch Clip',
+      parent: host,
+    }
+  }
+
+  // Twitch live channel — twitch.tv/channelname (catches anything left)
+  const twitchChannel = url.match(/(?:www\.|m\.)?twitch\.tv\/([a-zA-Z0-9_]+)\/?$/)
+  if (twitchChannel) {
+    return {
+      type: 'twitch',
+      embedUrl: `https://player.twitch.tv/?channel=${twitchChannel[1]}&parent=${host}`,
+      thumbnailUrl: null,
+      label: `Twitch — ${twitchChannel[1]}`,
+      parent: host,
     }
   }
 
