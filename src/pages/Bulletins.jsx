@@ -2,19 +2,24 @@ import { useState, useEffect } from 'react'
 import {
   Box, Stack, Typography, Card, CardContent, Button, Chip,
   Avatar, Divider, Dialog, DialogTitle, DialogContent,
-  DialogActions, TextField, CircularProgress,
+  DialogActions, TextField, CircularProgress, IconButton, Tooltip,
 } from '@mui/material'
-import { Campaign, Add, PushPin, AttachFile } from '@mui/icons-material'
+import { Campaign, Add, PushPin, AttachFile, Delete } from '@mui/icons-material'
 import { formatDistanceToNow } from 'date-fns'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
 import { LoadingState, EmptyState } from '../components/shared/States'
-import { subscribeBulletins, createBulletin } from '../firebase/firestore'
+import { subscribeBulletins, createBulletin, deleteBulletin } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { cleanHtml } from '../utils/sanitize'
 
-function BulletinCard({ bulletin }) {
+function BulletinCard({ bulletin, isCoach }) {
   const [expanded, setExpanded] = useState(false)
+
+  async function handleDelete() {
+    if (!window.confirm(`Delete "${bulletin.title}"?`)) return
+    await deleteBulletin(bulletin.id)
+  }
   const ts = bulletin.createdAt?.toDate?.() || new Date(bulletin.createdAt || Date.now())
   return (
     <Card
@@ -54,6 +59,13 @@ function BulletinCard({ bulletin }) {
                   </Typography>
                 </Stack>
               </Box>
+              {isCoach && (
+                <Tooltip title="Delete bulletin">
+                  <IconButton size="small" onClick={handleDelete} sx={{ color: 'error.main', opacity: 0.7, '&:hover': { opacity: 1 } }}>
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
             </Stack>
 
             <Box
@@ -188,7 +200,7 @@ export default function Bulletins() {
         />
       ) : (
         <Stack spacing={3}>
-          {sorted.map(b => <BulletinCard key={b.id} bulletin={b} />)}
+          {sorted.map(b => <BulletinCard key={b.id} bulletin={b} isCoach={isCoach} />)}
         </Stack>
       )}
 
