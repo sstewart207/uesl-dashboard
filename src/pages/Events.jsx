@@ -2,23 +2,23 @@ import { useState, useEffect } from 'react'
 import {
   Box, Grid, Card, CardContent, Stack, Typography, Chip, Button,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField,
-  MenuItem, Badge, Divider,
+  MenuItem, Badge, Divider, IconButton, Tooltip,
 } from '@mui/material'
-import { Add, CalendarMonth, LocationOn, SportsEsports, Code, Palette } from '@mui/icons-material'
+import { Add, CalendarMonth, LocationOn, SportsEsports, Code, Palette, DeleteOutline } from '@mui/icons-material'
 import { format } from 'date-fns'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import { LoadingState, EmptyState } from '../components/shared/States'
-import { subscribeEvents, createEvent, setEventRsvp, subscribeMembers, createNotification } from '../firebase/firestore'
+import { subscribeEvents, createEvent, deleteEvent, setEventRsvp, subscribeMembers, createNotification } from '../firebase/firestore'
 import { useAuth } from '../features/auth/AuthContext'
 import { HUB_COLORS } from '../theme/theme'
 
 const RSVP_COLORS = { Going: '#22C55E', Maybe: '#F59E0B', 'Not Going': '#FF4655' }
 const HUB_ICONS = { gaming: <SportsEsports fontSize="small" />, coding: <Code fontSize="small" />, design: <Palette fontSize="small" /> }
 
-function EventCard({ event, uid, members = [], isCoach = false, currentUserName }) {
+function EventCard({ event, uid, members = [], isCoach = false, currentUserName, onDelete }) {
   const color = HUB_COLORS[event.hub] || '#7C3AED'
   const eventDate = event.date?.toDate?.() || new Date(event.date)
   const myRsvp = event.rsvps?.[uid] || null
@@ -76,12 +76,21 @@ function EventCard({ event, uid, members = [], isCoach = false, currentUserName 
           <Box flex={1} minWidth={0}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
               <Typography variant="subtitle1" fontWeight={600} noWrap>{event.title}</Typography>
-              <Chip
-                icon={HUB_ICONS[event.hub]}
-                label={event.hub}
-                size="small"
-                sx={{ bgcolor: `${color}18`, color, border: `1px solid ${color}33`, '& .MuiChip-icon': { color }, ml: 1, flexShrink: 0 }}
-              />
+              <Stack direction="row" alignItems="center" spacing={0.5} flexShrink={0} ml={1}>
+                <Chip
+                  icon={HUB_ICONS[event.hub]}
+                  label={event.hub}
+                  size="small"
+                  sx={{ bgcolor: `${color}18`, color, border: `1px solid ${color}33`, '& .MuiChip-icon': { color } }}
+                />
+                {isCoach && onDelete && (
+                  <Tooltip title="Delete event">
+                    <IconButton size="small" onClick={() => onDelete(event.id)} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}>
+                      <DeleteOutline fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Stack>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={0.5} mt={0.25}>
               <LocationOn sx={{ fontSize: 13, color: 'text.secondary' }} />
@@ -197,6 +206,11 @@ export default function Events() {
     return () => { unsubEvents(); unsubMembers() }
   }, [])
 
+  async function handleDeleteEvent(eventId) {
+    if (!window.confirm('Delete this event? This cannot be undone.')) return
+    await deleteEvent(eventId)
+  }
+
   const calendarEvents = events.map(e => ({
     id: e.id,
     title: e.title,
@@ -240,6 +254,7 @@ export default function Events() {
                   members={members}
                   isCoach={isCoach}
                   currentUserName={userProfile?.displayName}
+                  onDelete={isCoach ? handleDeleteEvent : undefined}
                 />
               ))}
             </Stack>
