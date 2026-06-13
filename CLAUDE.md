@@ -40,6 +40,12 @@ React 18 + Vite · MUI v6 · Firebase (Auth + Firestore + Storage) · react-quil
 - **Rich text sanitized** with DOMPurify (`src/utils/sanitize.js` `cleanHtml`) at every dangerouslySetInnerHTML.
 - **Mobile nav**: Sidebar renders permanent on desktop + temporary Drawer on mobile (hamburger in Navbar). Dialogs are NOT full-screen on mobile (intentionally — removed per user).
 
+## Open issues (v1.1 — Post-Launch Polish)
+- **#32** Fake online presence dots — Profile.jsx hardcodes green dot; Members.jsx uses `index % 3`. Wire up real RTDB presence or remove dots.
+- **#33** Inline video embed — paste YouTube/Twitch URL into a post, renders as iframe player in the card.
+- **#37** Coach-handled user deletion — add delete to admin panel. Firestore doc easy; Firebase Auth deletion needs admin SDK (Spark plan limitation).
+- **#28** Home dashboard redesign.
+
 ## Known gotchas / open items
 - Firebase password-reset emails land in spam (generic sender) — known, low priority. Real fix needs a custom domain + SPF/DKIM/DMARC (deliverability is an identity problem, not code).
 - Posting lives in the Hubs (Discord-room model); Home is a read-only dashboard.

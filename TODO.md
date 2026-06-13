@@ -64,9 +64,11 @@
 - [x] **#30 Coaches can't delete bulletins** — DONE 2026-06-13. Wired up `deleteBulletin()` in `Bulletins.jsx`.
 - [x] **#31 Coaches can't delete events** — DONE 2026-06-13 (PR #35). Wired up `deleteEvent()` in `Events.jsx`.
 - [x] **Post delete on card** — DONE 2026-06-13. Trash icon on PostCard for author + coach, in hub feed and profile view.
-- [ ] **#29 Settings dead link** — Navbar "Settings" navigates to `/settings` but no route exists. Fix: build the page or remove the menu item.
+- [x] **#29 Settings dead link** — DONE 2026-06-13 (PR #38). Removed dead menu item. User deletion → admin panel (#37).
 - [ ] **#32 Fake online presence dots** — `Profile.jsx` hardcodes green dot; `Members.jsx` uses `index % 3`. Remove dots or wire up real presence.
 - [ ] **#33 Inline video embed** (feature) — paste YouTube/Twitch URL → renders as iframe player in post. Files: PostEditor, PostCard, PostDetail, firestore.js. ~30 min.
+- [ ] **#37 Coach-handled user deletion** — coaches can already approve/revoke; add delete to admin panel. Firestore doc deletion easy; Firebase Auth deletion needs admin SDK (Spark plan limitation — flag when building).
+- [ ] **#28 Home dashboard redesign** — redesign Home as a proper club dashboard.
 
 ## 📚 Learning track (school)
 - [x] Firebase School Class 1 — Firestore security rules (taught from PR #8).
