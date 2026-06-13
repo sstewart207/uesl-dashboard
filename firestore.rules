@@ -20,8 +20,8 @@ service cloud.firestore {
         (request.auth.uid == uid
          && request.resource.data.approved == false
          && request.resource.data.role == 'pending');
-      // Only admin can delete user docs.
-      allow delete: if isAdmin();
+      // Admin or coach can delete user docs (deny/remove members).
+      allow delete: if isAdmin() || isCoach();
       // Admin = full power. A coach may manage approvals: toggle `approved` and
       // set role to student/coach/pending (approve + revoke) — but NEVER mint an
       // admin, touch an existing admin's doc, or edit their own doc via this branch.

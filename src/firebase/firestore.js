@@ -195,6 +195,11 @@ export async function revokeUser(uid) {
   return updateDoc(doc(db, 'users', uid), { approved: false, role: 'pending' })
 }
 
+// Permanently delete a user doc (coach/admin only — enforced by Firestore rules).
+export async function deleteUserDoc(uid) {
+  return deleteDoc(doc(db, 'users', uid))
+}
+
 /* ---------------- NOTIFICATIONS ---------------- */
 
 export function subscribeNotifications(uid, cb) {
