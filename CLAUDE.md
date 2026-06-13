@@ -44,7 +44,7 @@ React 18 + Vite · MUI v6 · Firebase (Auth + Firestore + Storage) · react-quil
 - Firebase password-reset emails land in spam (generic sender) — known, low priority. Real fix needs a custom domain + SPF/DKIM/DMARC (deliverability is an identity problem, not code).
 - Posting lives in the Hubs (Discord-room model); Home is a read-only dashboard.
 - **DEMO_MODE is dev-only** (`import.meta.env.DEV && !VITE_FIREBASE_API_KEY`) — fails closed in prod builds (no accidental auto-admin). Seeds a fake `role:'admin'` demo user against mock data when Firebase isn't configured; real data is still protected by Firestore rules.
-- **App Check BUILT, monitoring mode** — reCAPTCHA v3 init in `firebase.js`, debug token registered. Enforcement pending (flip in Firebase Console → App Check after verifying metrics). See `docs/firebase-appcheck-explained.md`.
+- **App Check ENFORCED (2026-06-12)** — Firestore, Auth, Storage all enforced in Firebase Console. reCAPTCHA v3 active. See `docs/firebase-appcheck-explained.md`.
 - **GIFs work in posts AND comments** — `VITE_GIPHY_API_KEY` in `.env`. Inline Quill embed (PR #27).
 - **Live presence on Home** — RTDB `database.rules.json` deployed, `src/firebase/presence.js` handles online/offline.
 
